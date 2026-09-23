@@ -65,7 +65,7 @@ export function spawnZombie(scene) {
 
     // Clonado correcto para mallas animadas usando SkeletonUtils
     const zombie = SkeletonUtils.clone(zombieModel);
-    
+
     // Aparecer en un radio visible de 5 a 9 metros alrededor del personaje
     const angle = Math.random() * Math.PI * 2;
     const radius = 5 + Math.random() * 4;
@@ -98,9 +98,11 @@ export function updateEnemies(delta, scene) {
         dir.y = 0;
         dir.normalize();
 
+        // Dentro del bucle en updateEnemies:
         z.mesh.position.addScaledVector(dir, z.speed * delta);
-        z.mesh.position.y = ZOMBIE_HEIGHT_OFFSET;
-        z.mesh.rotation.y = Math.atan2(dir.x, dir.z);
+        // Limitar zombies para que no se salgan del suelo
+        z.mesh.position.x = Math.max(-14.0, Math.min(14.0, z.mesh.position.x));
+        z.mesh.position.z = Math.max(-18.0, Math.min(6.0, z.mesh.position.z));
 
         // Impacto con Jitomates
         for (let j = activeTomatoes.length - 1; j >= 0; j--) {
