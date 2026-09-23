@@ -16,9 +16,14 @@ const PLAYER_HEIGHT_OFFSET = 0.45;
 export const MAP_LIMITS = {
     minX: -7.3,
     maxX: 7.3,
-    minZ: -10.0,
-    maxZ: 10.7
+    minZ: -10.4,
+    maxZ: 10.4
 };
+
+// --- Control de Cámara con Mouse ---
+let yaw = 0;   // Rotación Horizontal (Izquierda / Derecha)
+let pitch = 0; // Rotación Vertical (Arriba / Abajo)
+const mouseSensitivity = 0.002;
 
 export function initPlayer(scene, camera) {
     const gltfLoader = new GLTFLoader();
@@ -60,8 +65,27 @@ export function initPlayer(scene, camera) {
         });
     });
 
+    // Eventos de teclado
     window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
     window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+
+    // Bloqueo de cursor al dar clic
+    window.addEventListener('click', () => {
+        if (document.pointerLockElement !== document.body) {
+            document.body.requestPointerLock();
+        }
+    });
+
+    // Lectura de movimiento del Mouse
+    window.addEventListener('mousemove', (e) => {
+        if (document.pointerLockElement === document.body) {
+            yaw -= e.movementX * mouseSensitivity;
+            pitch -= e.movementY * mouseSensitivity;
+
+            // Inclinación vertical
+            pitch = Math.max(-Math.PI / 4, Math.min(Math.PI / 6, pitch));
+        }
+    });
 }
 
 export function switchAnimation(name) {
@@ -76,26 +100,32 @@ export function updatePlayer(delta, camera) {
 
     let speed = keys['shift'] ? runSpeed : moveSpeed;
     let isMoving = false;
-    const moveVector = new THREE.Vector3();
 
-    if (keys['w']) { moveVector.z -= 1; isMoving = true; }
-    if (keys['s']) { moveVector.z += 1; isMoving = true; }
-    if (keys['a']) { moveVector.x -= 1; isMoving = true; }
-    if (keys['d']) { moveVector.x += 1; isMoving = true; }
+    // GIRAR EL PERSONAJE 180 GRADOS (Math.PI) para ver su espalda
+    playerMesh.rotation.y = yaw + Math.PI;
+
+    // Vector de dirección local
+    const moveDir = new THREE.Vector3();
+
+    if (keys['w']) { moveDir.z -= 1; isMoving = true; }
+    if (keys['s']) { moveDir.z += 1; isMoving = true; }
+    if (keys['a']) { moveDir.x -= 1; isMoving = true; }
+    if (keys['d']) { moveDir.x += 1; isMoving = true; }
 
     if (isMoving) {
-        moveVector.normalize().multiplyScalar(speed * delta);
+        moveDir.normalize();
         
-        // Mover jugador
-        playerMesh.position.x += moveVector.x;
-        playerMesh.position.z += moveVector.z;
-        
-        // --- RESTANCIAS / LÍMITES DEL MAPA ---
+        // Convertir la dirección local a dirección global
+        moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+        moveDir.multiplyScalar(speed * delta);
+
+        // Desplazamiento
+        playerMesh.position.x += moveDir.x;
+        playerMesh.position.z += moveDir.z;
+
+        // --- LÍMITES DEL MAPA ---
         playerMesh.position.x = Math.max(MAP_LIMITS.minX, Math.min(MAP_LIMITS.maxX, playerMesh.position.x));
         playerMesh.position.z = Math.max(MAP_LIMITS.minZ, Math.min(MAP_LIMITS.maxZ, playerMesh.position.z));
-
-        playerMesh.position.y = PLAYER_HEIGHT_OFFSET;
-        playerMesh.rotation.y = Math.atan2(moveVector.x, moveVector.z);
 
         switchAnimation(keys['shift'] ? 'run' : 'walk');
     } else {
@@ -105,19 +135,25 @@ export function updatePlayer(delta, camera) {
         }
     }
 
+    playerMesh.position.y = PLAYER_HEIGHT_OFFSET;
+
     if (mixer) mixer.update(delta);
 
-    // Seguimiento de cámara
-    const cameraDistance = 2.2;
-    const cameraHeight = 1.0;
+    // --- POSICIONAMIENTO DE CÁMARA TERCERA PERSONA (Espalda del personaje) ---
+    const cameraDistance = 2.0; 
+    const cameraHeight = 0.8;   
 
-    camera.position.x = playerMesh.position.x;
-    camera.position.y = playerMesh.position.y + cameraHeight;
-    camera.position.z = playerMesh.position.z + cameraDistance;
+    const cameraOffset = new THREE.Vector3(0, cameraHeight, cameraDistance);
+    
+    cameraOffset.applyAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
+    cameraOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
-    camera.lookAt(
-        playerMesh.position.x,
-        playerMesh.position.y + 0.3,
-        playerMesh.position.z
-    );
+    camera.position.copy(playerMesh.position).add(cameraOffset);
+
+    // Punto hacia el que mira la cámara (hacia adelante)
+    const targetOffset = new THREE.Vector3(0, 0.5, -5.0);
+    targetOffset.applyAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
+    targetOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+
+    camera.lookAt(playerMesh.position.clone().add(targetOffset));
 }
