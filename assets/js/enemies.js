@@ -4,9 +4,10 @@ import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { addDynamicBody } from './physics.js';
 import { activeTomatoes } from './tomato.js';
-import { playerMesh } from './player.js';
+import { playerMesh, MAP_LIMITS } from './player.js';
 import { gameState } from './game.js';
 import { updateHUD } from './ui.js';
+
 
 export const zombies = [];
 let zombieModel = null;
@@ -63,15 +64,17 @@ function buildDestructibleTower(scene, x, y, z) {
 export function spawnZombie(scene) {
     if (!zombieModel || !playerMesh) return;
 
-    // Clonado correcto para mallas animadas usando SkeletonUtils
     const zombie = SkeletonUtils.clone(zombieModel);
 
-    // Aparecer en un radio visible de 5 a 9 metros alrededor del personaje
     const angle = Math.random() * Math.PI * 2;
     const radius = 5 + Math.random() * 4;
 
-    const spawnX = playerMesh.position.x + Math.cos(angle) * radius;
-    const spawnZ = playerMesh.position.z + Math.sin(angle) * radius;
+    // Calcular y delimitar posición de spawn inmediatamente
+    let spawnX = playerMesh.position.x + Math.cos(angle) * radius;
+    let spawnZ = playerMesh.position.z + Math.sin(angle) * radius;
+
+    spawnX = Math.max(MAP_LIMITS.minX, Math.min(MAP_LIMITS.maxX, spawnX));
+    spawnZ = Math.max(MAP_LIMITS.minZ, Math.min(MAP_LIMITS.maxZ, spawnZ));
 
     zombie.position.set(spawnX, ZOMBIE_HEIGHT_OFFSET, spawnZ);
     scene.add(zombie);
@@ -101,8 +104,8 @@ export function updateEnemies(delta, scene) {
         // Dentro del bucle en updateEnemies:
         z.mesh.position.addScaledVector(dir, z.speed * delta);
         // Limitar zombies para que no se salgan del suelo
-        z.mesh.position.x = Math.max(-14.0, Math.min(14.0, z.mesh.position.x));
-        z.mesh.position.z = Math.max(-18.0, Math.min(6.0, z.mesh.position.z));
+        z.mesh.position.x = Math.max(MAP_LIMITS.minX, Math.min(MAP_LIMITS.maxX, z.mesh.position.x));
+        z.mesh.position.z = Math.max(MAP_LIMITS.minZ, Math.min(MAP_LIMITS.maxZ, z.mesh.position.z));
 
         // Impacto con Jitomates
         for (let j = activeTomatoes.length - 1; j >= 0; j--) {

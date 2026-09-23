@@ -13,8 +13,7 @@ const runSpeed = 6.0;
 
 const PLAYER_HEIGHT_OFFSET = 0.45; 
 
-// Definir límites del mapa (ajusta estos números según el tamaño exacto de tu suelo)
-const MAP_LIMITS = {
+export const MAP_LIMITS = {
     minX: -7.3,
     maxX: 7.3,
     minZ: -10.0,
