@@ -70,3 +70,6 @@ body, html {
     letter-spacing: 1px;
     color: #ccc;
 }
+.d-none {
+    display: none !important;
+}

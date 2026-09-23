@@ -4,18 +4,32 @@ export function initUI(onStartCallback) {
     const btnStart = document.getElementById('btnStartGame');
     const btnRestart = document.getElementById('btnRestartGame');
 
-    btnStart.addEventListener('click', () => {
-        document.getElementById('startScreen').classList.remove('active');
-        document.getElementById('gameHUD').classList.remove('d-none');
-        startGame();
-        if (onStartCallback) onStartCallback();
-    });
+    if (btnStart) {
+        btnStart.addEventListener('click', () => {
+            const startScreen = document.getElementById('startScreen');
+            startScreen.classList.remove('active');
+            startScreen.classList.add('d-none'); // Oculta completamente el menú
 
-    btnRestart.addEventListener('click', () => {
-        document.getElementById('gameOverScreen').classList.add('d-none');
-        document.getElementById('gameOverScreen').classList.remove('active');
-        startGame();
-    });
+            const hud = document.getElementById('gameHUD');
+            hud.classList.remove('d-none');
+
+            startGame();
+            if (onStartCallback) onStartCallback();
+        });
+    }
+
+    if (btnRestart) {
+        btnRestart.addEventListener('click', () => {
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            gameOverScreen.classList.add('d-none');
+            gameOverScreen.classList.remove('active');
+
+            const hud = document.getElementById('gameHUD');
+            hud.classList.remove('d-none');
+
+            startGame();
+        });
+    }
 }
 
 export function updateHUD() {

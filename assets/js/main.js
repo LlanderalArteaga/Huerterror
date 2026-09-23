@@ -10,7 +10,7 @@ import { initUI } from './ui.js';
 let scene, camera, renderer, clock;
 let spawnTimer = 0;
 
-async function init() {
+function init() {
     // 1. Crear Escena, Cámara y Renderizador
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87ceeb);
@@ -30,13 +30,15 @@ async function init() {
         scene.add(gltf.scene);
     });
 
-    // 3. Inicializar Módulos
-    await initPhysics();
+    // 3. Inicializar Módulos de forma segura
     initGameLogic(scene);
     initPlayer(scene, camera);
     initTomatoProps(scene);
     initEnemiesAndProps(scene);
     initUI();
+
+    // Cargar físicas de fondo sin bloquear el hilo principal
+    initPhysics().catch(err => console.error("Error al cargar Rapier Physics:", err));
 
     // Ajustar ventana al redimensionar
     window.addEventListener('resize', onWindowResize);
