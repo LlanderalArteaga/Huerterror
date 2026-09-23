@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { addDynamicBody } from './physics.js';
 import { activeTomatoes } from './tomato.js';
 import { playerMesh } from './player.js';
@@ -12,6 +13,8 @@ let zombieModel = null;
 let crateModel = null;
 let zombieAttackClip = null;
 
+const ZOMBIE_HEIGHT_OFFSET = 0.45;
+
 export function initEnemiesAndProps(scene) {
     const gltfLoader = new GLTFLoader();
     const fbxLoader = new FBXLoader();
@@ -19,11 +22,11 @@ export function initEnemiesAndProps(scene) {
     // 1. Cargar Modelo del Zombie
     gltfLoader.load('./assets/models/enemies/Zombie_Male.gltf', (gltf) => {
         zombieModel = gltf.scene;
-        zombieModel.scale.set(0.8, 0.8, 0.8); // Proporcional al jugador
-    });
+        zombieModel.scale.set(0.14, 0.14, 0.14);
+    }, undefined, (err) => console.error("Error al cargar GLTF Zombie:", err));
 
-    // 2. Cargar Animación FBX de Ataque
-    fbxLoader.load('./assets/models/enemies/animations/ZombieAttack.fbx', (anim) => {
+    // 2. Cargar Animación FBX (Ruta corregida: Zombie_Attack.fbx)
+    fbxLoader.load('./assets/models/enemies/animations/Zombie_Attack.fbx', (anim) => {
         if (anim.animations && anim.animations.length) {
             zombieAttackClip = anim.animations[0];
 
@@ -37,38 +40,40 @@ export function initEnemiesAndProps(scene) {
                 track.name = track.name.replace('mixamorig', '');
             });
         }
-    });
+    }, undefined, (err) => console.error("Error al cargar FBX Animación Zombie:", err));
 
     // 3. Cargar Cajas
     gltfLoader.load('./assets/models/props/Block_WoodPlanks.gltf', (gltf) => {
         crateModel = gltf.scene;
-        buildDestructibleTower(scene, 8, 0, -10);
-    });
+        buildDestructibleTower(scene, 4, ZOMBIE_HEIGHT_OFFSET, -5);
+    }, undefined, (err) => console.warn("Caja no encontrada, omitiendo props"));
 }
 
 function buildDestructibleTower(scene, x, y, z) {
     if (!crateModel) return;
     for (let i = 0; i < 3; i++) {
         const crate = crateModel.clone();
-        crate.position.set(x, i * 1.1 + 0.5, z);
+        crate.scale.set(0.3, 0.3, 0.3);
+        crate.position.set(x, y + (i * 0.4), z);
         scene.add(crate);
-        addDynamicBody(crate, 1.0, 1.0, 1.0, 2.0);
+        addDynamicBody(crate, 0.3, 0.3, 0.3, 2.0);
     }
 }
 
 export function spawnZombie(scene) {
     if (!zombieModel || !playerMesh) return;
 
-    const zombie = zombieModel.clone();
+    // Clonado correcto para mallas animadas usando SkeletonUtils
+    const zombie = SkeletonUtils.clone(zombieModel);
     
-    // Generar zombies en un radio cercano alrededor del jugador (entre 12 y 20 metros)
+    // Aparecer en un radio visible de 5 a 9 metros alrededor del personaje
     const angle = Math.random() * Math.PI * 2;
-    const radius = 12 + Math.random() * 8;
+    const radius = 5 + Math.random() * 4;
 
     const spawnX = playerMesh.position.x + Math.cos(angle) * radius;
     const spawnZ = playerMesh.position.z + Math.sin(angle) * radius;
 
-    zombie.position.set(spawnX, 0, spawnZ);
+    zombie.position.set(spawnX, ZOMBIE_HEIGHT_OFFSET, spawnZ);
     scene.add(zombie);
 
     const mixer = new THREE.AnimationMixer(zombie);
@@ -77,7 +82,7 @@ export function spawnZombie(scene) {
         action.play();
     }
 
-    zombies.push({ mesh: zombie, speed: 2.5, mixer });
+    zombies.push({ mesh: zombie, speed: 1.8, mixer });
 }
 
 export function updateEnemies(delta, scene) {
@@ -94,12 +99,13 @@ export function updateEnemies(delta, scene) {
         dir.normalize();
 
         z.mesh.position.addScaledVector(dir, z.speed * delta);
+        z.mesh.position.y = ZOMBIE_HEIGHT_OFFSET;
         z.mesh.rotation.y = Math.atan2(dir.x, dir.z);
 
         // Impacto con Jitomates
         for (let j = activeTomatoes.length - 1; j >= 0; j--) {
             const tom = activeTomatoes[j];
-            if (z.mesh.position.distanceTo(tom.mesh.position) < 1.5) {
+            if (z.mesh.position.distanceTo(tom.mesh.position) < 0.6) {
                 scene.remove(z.mesh);
                 zombies.splice(i, 1);
 
@@ -113,7 +119,7 @@ export function updateEnemies(delta, scene) {
         }
 
         // Ataque al jugador
-        if (z.mesh.position.distanceTo(playerMesh.position) < 1.2) {
+        if (z.mesh.position.distanceTo(playerMesh.position) < 0.6) {
             gameState.health -= 12 * delta;
             updateHUD();
         }
