@@ -20,9 +20,10 @@ export const MAP_LIMITS = {
     maxZ: 10.4
 };
 
+
 // --- Control de Cámara con Mouse ---
-let yaw = 0;   // Rotación Horizontal (Izquierda / Derecha)
-let pitch = 0; // Rotación Vertical (Arriba / Abajo)
+export let yaw = 0;   // Rotación Horizontal (Izquierda / Derecha)
+export let pitch = 0; // Rotación Vertical (Arriba / Abajo)
 const mouseSensitivity = 0.002;
 
 export function initPlayer(scene, camera) {
