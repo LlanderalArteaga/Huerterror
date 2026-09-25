@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { checkCollision } from './physics.js';
 
 export let playerMesh = null;
 export let mixer = null;
@@ -11,19 +12,19 @@ const keys = {};
 const moveSpeed = 3.5;
 const runSpeed = 6.0;
 
-const PLAYER_HEIGHT_OFFSET = 0.45; 
+const PLAYER_HEIGHT_OFFSET = 0; 
+const PLAYER_RADIUS = 0.2;
 
+// Límites ajustados exactamente al perímetro de las cercas y el terreno (64x64)
 export const MAP_LIMITS = {
-    minX: -7.3,
-    maxX: 7.3,
-    minZ: -10.4,
-    maxZ: 10.4
+    minX: -32,
+    maxX: 32,
+    minZ: -32,
+    maxZ: 32 // Permite llegar hasta la entrada sur sin salirse del mapa
 };
 
-
-// --- Control de Cámara con Mouse ---
-export let yaw = 0;   // Rotación Horizontal (Izquierda / Derecha)
-export let pitch = 0; // Rotación Vertical (Arriba / Abajo)
+export let yaw = 0;   
+export let pitch = 0; 
 const mouseSensitivity = 0.002;
 
 export function initPlayer(scene, camera) {
@@ -33,8 +34,16 @@ export function initPlayer(scene, camera) {
     gltfLoader.load('./assets/models/character/Character_Male_1.gltf', (gltf) => {
         playerMesh = gltf.scene;
 
-        playerMesh.scale.set(0.13, 0.13, 0.13);
-        playerMesh.position.set(0, PLAYER_HEIGHT_OFFSET, 0); 
+        // Activar sombras para todas las sub-mallas del personaje
+        playerMesh.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
+
+        playerMesh.scale.set(0.2, 0.2, 0.2);
+        playerMesh.position.set(0, PLAYER_HEIGHT_OFFSET, 3.5); 
         scene.add(playerMesh);
 
         mixer = new THREE.AnimationMixer(playerMesh);
@@ -66,24 +75,20 @@ export function initPlayer(scene, camera) {
         });
     });
 
-    // Eventos de teclado
     window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
     window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
 
-    // Bloqueo de cursor al dar clic
     window.addEventListener('click', () => {
         if (document.pointerLockElement !== document.body) {
             document.body.requestPointerLock();
         }
     });
 
-    // Lectura de movimiento del Mouse
     window.addEventListener('mousemove', (e) => {
         if (document.pointerLockElement === document.body) {
             yaw -= e.movementX * mouseSensitivity;
             pitch -= e.movementY * mouseSensitivity;
 
-            // Inclinación vertical
             pitch = Math.max(-Math.PI / 4, Math.min(Math.PI / 6, pitch));
         }
     });
@@ -102,10 +107,8 @@ export function updatePlayer(delta, camera) {
     let speed = keys['shift'] ? runSpeed : moveSpeed;
     let isMoving = false;
 
-    // GIRAR EL PERSONAJE 180 GRADOS (Math.PI) para ver su espalda
     playerMesh.rotation.y = yaw + Math.PI;
 
-    // Vector de dirección local
     const moveDir = new THREE.Vector3();
 
     if (keys['w']) { moveDir.z -= 1; isMoving = true; }
@@ -115,16 +118,24 @@ export function updatePlayer(delta, camera) {
 
     if (isMoving) {
         moveDir.normalize();
-        
-        // Convertir la dirección local a dirección global
         moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
         moveDir.multiplyScalar(speed * delta);
 
-        // Desplazamiento
-        playerMesh.position.x += moveDir.x;
-        playerMesh.position.z += moveDir.z;
+        // Movimiento en X comprobando colisiones
+        const nextXPos = playerMesh.position.clone();
+        nextXPos.x += moveDir.x;
+        if (!checkCollision(nextXPos, PLAYER_RADIUS)) {
+            playerMesh.position.x = nextXPos.x;
+        }
 
-        // --- LÍMITES DEL MAPA ---
+        // Movimiento en Z comprobando colisiones
+        const nextZPos = playerMesh.position.clone();
+        nextZPos.z += moveDir.z;
+        if (!checkCollision(nextZPos, PLAYER_RADIUS)) {
+            playerMesh.position.z = nextZPos.z;
+        }
+
+        // Límites strictly del escenario
         playerMesh.position.x = Math.max(MAP_LIMITS.minX, Math.min(MAP_LIMITS.maxX, playerMesh.position.x));
         playerMesh.position.z = Math.max(MAP_LIMITS.minZ, Math.min(MAP_LIMITS.maxZ, playerMesh.position.z));
 
@@ -140,18 +151,16 @@ export function updatePlayer(delta, camera) {
 
     if (mixer) mixer.update(delta);
 
-    // --- POSICIONAMIENTO DE CÁMARA TERCERA PERSONA (Espalda del personaje) ---
+    // Cámara en tercera persona
     const cameraDistance = 2.0; 
     const cameraHeight = 0.8;   
 
     const cameraOffset = new THREE.Vector3(0, cameraHeight, cameraDistance);
-    
     cameraOffset.applyAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
     cameraOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
     camera.position.copy(playerMesh.position).add(cameraOffset);
 
-    // Punto hacia el que mira la cámara (hacia adelante)
     const targetOffset = new THREE.Vector3(0, 0.5, -5.0);
     targetOffset.applyAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
     targetOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);

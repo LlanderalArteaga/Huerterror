@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { initPhysics, updatePhysics } from './physics.js';
+import { loadCustomMap } from './mapLoader.js';
 import { initPlayer, updatePlayer } from './player.js';
 import { initTomatoProps, updateTomatoes } from './tomato.js';
 import { initEnemiesAndProps, updateEnemies, spawnZombie } from './enemies.js';
@@ -13,10 +13,11 @@ let spawnTimer = 0;
 function init() {
     // 1. Crear Escena, Cámara y Renderizador
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87ceeb);
+    // Color de fondo nocturno para coincidir con la atmósfera de mapLoader.js
+    scene.background = new THREE.Color(0x0f101d);
 
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    
+
     const canvas = document.getElementById('gameCanvas');
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -24,11 +25,14 @@ function init() {
 
     clock = new THREE.Clock();
 
-    // 2. Cargar Mapa de la Granja
-    const gltfLoader = new GLTFLoader();
-    gltfLoader.load('./assets/models/environment/granja.gltf', (gltf) => {
-        scene.add(gltf.scene);
-    });
+    // Habilitar proyección de sombras suaves
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // 2. Cargar físicas y mapa modular
+    initPhysics().then(async () => {
+        await loadCustomMap(scene);
+    }).catch(err => console.error("Error al cargar Rapier Physics / Mapa:", err));
 
     // 3. Inicializar Módulos de forma segura
     initGameLogic(scene);
@@ -36,9 +40,6 @@ function init() {
     initTomatoProps(scene);
     initEnemiesAndProps(scene);
     initUI();
-
-    // Cargar físicas de fondo sin bloquear el hilo principal
-    initPhysics().catch(err => console.error("Error al cargar Rapier Physics:", err));
 
     // Ajustar ventana al redimensionar
     window.addEventListener('resize', onWindowResize);

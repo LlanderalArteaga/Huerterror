@@ -2,31 +2,36 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
-import { addDynamicBody } from './physics.js';
+import { addDynamicBody, checkCollision } from './physics.js';
 import { activeTomatoes } from './tomato.js';
 import { playerMesh, MAP_LIMITS } from './player.js';
 import { gameState } from './game.js';
 import { updateHUD } from './ui.js';
-
 
 export const zombies = [];
 let zombieModel = null;
 let crateModel = null;
 let zombieAttackClip = null;
 
-const ZOMBIE_HEIGHT_OFFSET = 0.45;
+const ZOMBIE_HEIGHT_OFFSET = 0;
+const ZOMBIE_RADIUS = 0.35;
+const ATTACK_RANGE = 1.1; // Distancia límite para detenerse y atacar sin meterse al jugador
 
 export function initEnemiesAndProps(scene) {
     const gltfLoader = new GLTFLoader();
     const fbxLoader = new FBXLoader();
 
-    // 1. Cargar Modelo del Zombie
     gltfLoader.load('./assets/models/enemies/Zombie_Male.gltf', (gltf) => {
         zombieModel = gltf.scene;
-        zombieModel.scale.set(0.14, 0.14, 0.14);
+        zombieModel.scale.set(0.2, 0.2, 0.2);
+        zombieModel.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
     }, undefined, (err) => console.error("Error al cargar GLTF Zombie:", err));
 
-    // 2. Cargar Animación FBX (Ruta corregida: Zombie_Attack.fbx)
     fbxLoader.load('./assets/models/enemies/animations/Zombie_Attack.fbx', (anim) => {
         if (anim.animations && anim.animations.length) {
             zombieAttackClip = anim.animations[0];
@@ -43,9 +48,14 @@ export function initEnemiesAndProps(scene) {
         }
     }, undefined, (err) => console.error("Error al cargar FBX Animación Zombie:", err));
 
-    // 3. Cargar Cajas
     gltfLoader.load('./assets/models/props/Block_WoodPlanks.gltf', (gltf) => {
         crateModel = gltf.scene;
+        crateModel.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
         buildDestructibleTower(scene, 4, ZOMBIE_HEIGHT_OFFSET, -5);
     }, undefined, (err) => console.warn("Caja no encontrada, omitiendo props"));
 }
@@ -56,6 +66,12 @@ function buildDestructibleTower(scene, x, y, z) {
         const crate = crateModel.clone();
         crate.scale.set(0.3, 0.3, 0.3);
         crate.position.set(x, y + (i * 0.4), z);
+        crate.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
         scene.add(crate);
         addDynamicBody(crate, 0.3, 0.3, 0.3, 2.0);
     }
@@ -65,11 +81,16 @@ export function spawnZombie(scene) {
     if (!zombieModel || !playerMesh) return;
 
     const zombie = SkeletonUtils.clone(zombieModel);
+    zombie.traverse((child) => {
+        if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+        }
+    });
 
     const angle = Math.random() * Math.PI * 2;
     const radius = 5 + Math.random() * 4;
 
-    // Calcular y delimitar posición de spawn inmediatamente
     let spawnX = playerMesh.position.x + Math.cos(angle) * radius;
     let spawnZ = playerMesh.position.z + Math.sin(angle) * radius;
 
@@ -96,18 +117,40 @@ export function updateEnemies(delta, scene) {
 
         if (z.mixer) z.mixer.update(delta);
 
-        // Movimiento en dirección al jugador
-        const dir = new THREE.Vector3().subVectors(playerMesh.position, z.mesh.position);
-        dir.y = 0;
-        dir.normalize();
+        // Calcular distancia actual al personaje
+        const distToPlayer = z.mesh.position.distanceTo(playerMesh.position);
 
-        // Dentro del bucle en updateEnemies:
-        z.mesh.position.addScaledVector(dir, z.speed * delta);
-        // Limitar zombies para que no se salgan del suelo
-        z.mesh.position.x = Math.max(MAP_LIMITS.minX, Math.min(MAP_LIMITS.maxX, z.mesh.position.x));
-        z.mesh.position.z = Math.max(MAP_LIMITS.minZ, Math.min(MAP_LIMITS.maxZ, z.mesh.position.z));
+        // Mirar siempre hacia el personaje
+        z.mesh.lookAt(playerMesh.position.x, z.mesh.position.y, playerMesh.position.z);
 
-        // Impacto con Jitomates
+        // SOLO AVANZA SI ESTÁ FUERA DEL RANGO DE ATAQUE
+        if (distToPlayer > ATTACK_RANGE) {
+            const dir = new THREE.Vector3().subVectors(playerMesh.position, z.mesh.position);
+            dir.y = 0;
+            dir.normalize();
+
+            const moveStep = dir.multiplyScalar(z.speed * delta);
+
+            // Movimiento en X con colisiones de mapa
+            const nextXPos = z.mesh.position.clone();
+            nextXPos.x += moveStep.x;
+            if (!checkCollision(nextXPos, ZOMBIE_RADIUS)) {
+                z.mesh.position.x = nextXPos.x;
+            }
+
+            // Movimiento en Z con colisiones de mapa
+            const nextZPos = z.mesh.position.clone();
+            nextZPos.z += moveStep.z;
+            if (!checkCollision(nextZPos, ZOMBIE_RADIUS)) {
+                z.mesh.position.z = nextZPos.z;
+            }
+
+            // Delimitar dentro de los bordes del mapa
+            z.mesh.position.x = Math.max(MAP_LIMITS.minX, Math.min(MAP_LIMITS.maxX, z.mesh.position.x));
+            z.mesh.position.z = Math.max(MAP_LIMITS.minZ, Math.min(MAP_LIMITS.maxZ, z.mesh.position.z));
+        }
+
+        // Impacto de tomates
         for (let j = activeTomatoes.length - 1; j >= 0; j--) {
             const tom = activeTomatoes[j];
             if (z.mesh.position.distanceTo(tom.mesh.position) < 0.6) {
@@ -123,8 +166,8 @@ export function updateEnemies(delta, scene) {
             }
         }
 
-        // Ataque al jugador
-        if (z.mesh.position.distanceTo(playerMesh.position) < 0.6) {
+        // Daño al jugador cuando entra en rango de ataque
+        if (distToPlayer <= ATTACK_RANGE) {
             gameState.health -= 12 * delta;
             updateHUD();
         }
