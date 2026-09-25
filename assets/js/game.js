@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { updateHUD, showGameOverScreen, setCrosshairVisible } from './ui.js';
+import { playerMesh } from './player.js';
+import { zombies } from './enemies.js';
 
 export const gameState = {
     isPlaying: false,
@@ -9,6 +11,8 @@ export const gameState = {
     score: 0,
     zombiesKilled: 0,
     targetZombies: 10,
+    keysFound: 0,
+    targetKeys: 3,
     doorOpen: false,
     time: 0
 };
@@ -33,24 +37,43 @@ export function startGame() {
     gameState.score = 0;
     gameState.zombiesKilled = 0;
     gameState.targetZombies = 10;
+    gameState.keysFound = 0;
+    gameState.targetKeys = 3;
     gameState.doorOpen = false;
     gameState.time = 0;
+
+    // Regresar jugador al origen
+    if (playerMesh) {
+        playerMesh.position.set(0, 0, 0);
+    }
 
     setCrosshairVisible(true);
     updateHUD();
 }
 
-// Llama a esta función cada vez que un zombie es eliminado por un jitomate
 export function onZombieKilled() {
     if (!gameState.isPlaying) return;
 
     gameState.score += 1;
-    gameState.zombiesKilled += 1;
 
-    // Verificar si se completó la meta del Nivel 1
-    if (gameState.level === 1 && gameState.zombiesKilled >= gameState.targetZombies && !gameState.doorOpen) {
-        gameState.doorOpen = true;
-        // Aquí puedes agregar el código de animación para abrir las puertas 3D
+    if (gameState.level === 1) {
+        gameState.zombiesKilled += 1;
+        if (gameState.zombiesKilled >= gameState.targetZombies && !gameState.doorOpen) {
+            gameState.doorOpen = true;
+        }
+    }
+
+    updateHUD();
+}
+
+export function startLevel2() {
+    gameState.level = 2;
+    gameState.doorOpen = false;
+    gameState.keysFound = 0;
+    gameState.targetKeys = 3;
+
+    if (playerMesh) {
+        playerMesh.position.set(0, 0, 0);
     }
 
     updateHUD();
@@ -63,7 +86,7 @@ export function updateGame(delta, scene) {
 
     if (gameState.health <= 0) {
         gameState.isPlaying = false;
-        showGameOverScreen("GAME OVER", "Los zombies arrasaron con el huerto.");
+        showGameOverScreen("¡HAS MUERTO!", "Los zombies arrasaron con el huerto.");
     }
 
     updateHUD();

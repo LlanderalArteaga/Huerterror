@@ -3,10 +3,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { addDynamicBody, checkCollision } from './physics.js';
-import { activeTomatoes } from './tomato.js';
+import { activeTomatoes, createTomatoExplosion } from './tomato.js';
 import { playerMesh, MAP_LIMITS } from './player.js';
 import { gameState, onZombieKilled } from './game.js';
-import { updateHUD } from './ui.js';
+import { updateHUD,triggerDamageFlash } from './ui.js';
 
 export const zombies = [];
 let zombieModel = null;
@@ -16,6 +16,13 @@ let zombieAttackClip = null;
 const ZOMBIE_HEIGHT_OFFSET = 0;
 const ZOMBIE_RADIUS = 0.35;
 const ATTACK_RANGE = 1.1; // Distancia límite para detenerse y atacar sin meterse al jugador
+
+const FENCE_LIMITS = {
+    minX: -23.5,
+    maxX: 23.5,
+    minZ: -23.5,
+    maxZ: 23.5
+};
 
 export function initEnemiesAndProps(scene) {
     const gltfLoader = new GLTFLoader();
@@ -60,7 +67,7 @@ export function initEnemiesAndProps(scene) {
     }, undefined, (err) => console.warn("Caja no encontrada, omitiendo props"));
 }
 
-function buildDestructibleTower(scene, x, y, z) {
+/* function buildDestructibleTower(scene, x, y, z) {
     if (!crateModel) return;
     for (let i = 0; i < 3; i++) {
         const crate = crateModel.clone();
@@ -75,7 +82,7 @@ function buildDestructibleTower(scene, x, y, z) {
         scene.add(crate);
         addDynamicBody(crate, 0.3, 0.3, 0.3, 2.0);
     }
-}
+} */
 
 export function spawnZombie(scene) {
     if (!zombieModel || !playerMesh) return;
@@ -94,8 +101,9 @@ export function spawnZombie(scene) {
     let spawnX = playerMesh.position.x + Math.cos(angle) * radius;
     let spawnZ = playerMesh.position.z + Math.sin(angle) * radius;
 
-    spawnX = Math.max(MAP_LIMITS.minX, Math.min(MAP_LIMITS.maxX, spawnX));
-    spawnZ = Math.max(MAP_LIMITS.minZ, Math.min(MAP_LIMITS.maxZ, spawnZ));
+    // Delimitar estrictamente dentro del cercado de las vallas
+    spawnX = Math.max(FENCE_LIMITS.minX, Math.min(FENCE_LIMITS.maxX, spawnX));
+    spawnZ = Math.max(FENCE_LIMITS.minZ, Math.min(FENCE_LIMITS.maxZ, spawnZ));
 
     zombie.position.set(spawnX, ZOMBIE_HEIGHT_OFFSET, spawnZ);
     scene.add(zombie);
@@ -108,22 +116,24 @@ export function spawnZombie(scene) {
 
     zombies.push({ mesh: zombie, speed: 1.8, mixer });
 }
-
+let damageFlashCooldown = 0;
 export function updateEnemies(delta, scene) {
     if (!playerMesh) return;
+
+    // Reducir temporizador del destello de daño
+    if (damageFlashCooldown > 0) {
+        damageFlashCooldown -= delta;
+    }
 
     for (let i = zombies.length - 1; i >= 0; i--) {
         const z = zombies[i];
 
         if (z.mixer) z.mixer.update(delta);
 
-        // Calcular distancia actual al personaje
         const distToPlayer = z.mesh.position.distanceTo(playerMesh.position);
 
-        // Mirar siempre hacia el personaje
         z.mesh.lookAt(playerMesh.position.x, z.mesh.position.y, playerMesh.position.z);
 
-        // SOLO AVANZA SI ESTÁ FUERA DEL RANGO DE ATAQUE
         if (distToPlayer > ATTACK_RANGE) {
             const dir = new THREE.Vector3().subVectors(playerMesh.position, z.mesh.position);
             dir.y = 0;
@@ -131,45 +141,55 @@ export function updateEnemies(delta, scene) {
 
             const moveStep = dir.multiplyScalar(z.speed * delta);
 
-            // Movimiento en X con colisiones de mapa
             const nextXPos = z.mesh.position.clone();
             nextXPos.x += moveStep.x;
             if (!checkCollision(nextXPos, ZOMBIE_RADIUS)) {
                 z.mesh.position.x = nextXPos.x;
             }
 
-            // Movimiento en Z con colisiones de mapa
             const nextZPos = z.mesh.position.clone();
             nextZPos.z += moveStep.z;
             if (!checkCollision(nextZPos, ZOMBIE_RADIUS)) {
                 z.mesh.position.z = nextZPos.z;
             }
 
-            // Delimitar dentro de los bordes del mapa
             z.mesh.position.x = Math.max(MAP_LIMITS.minX, Math.min(MAP_LIMITS.maxX, z.mesh.position.x));
             z.mesh.position.z = Math.max(MAP_LIMITS.minZ, Math.min(MAP_LIMITS.maxZ, z.mesh.position.z));
         }
 
-        // Impacto de tomates
+        // --- Impacto de tomates contra zombies ---
+        const zombieCenter = z.mesh.position.clone().add(new THREE.Vector3(0, 0.8, 0));
+        let zombieHit = false;
+
         for (let j = activeTomatoes.length - 1; j >= 0; j--) {
             const tom = activeTomatoes[j];
-            if (z.mesh.position.distanceTo(tom.mesh.position) < 0.6) {
-                scene.remove(z.mesh);
-                zombies.splice(i, 1);
+
+            if (zombieCenter.distanceTo(tom.mesh.position) < 1.2) {
+                createTomatoExplosion(scene, tom.mesh.position.clone());
 
                 scene.remove(tom.mesh);
                 activeTomatoes.splice(j, 1);
 
-                // Incrementa score, zombiesKilled y actualiza la UI del objetivo
+                scene.remove(z.mesh);
+                zombies.splice(i, 1);
+
                 onZombieKilled();
+                zombieHit = true;
                 break;
             }
         }
 
-        // Daño al jugador cuando entra en rango de ataque
+        if (zombieHit) continue;
+
+        // Daño al jugador y activación del flashazo rojo
         if (distToPlayer <= ATTACK_RANGE) {
             gameState.health -= 12 * delta;
             updateHUD();
+
+            if (damageFlashCooldown <= 0) {
+                triggerDamageFlash();
+                damageFlashCooldown = 0.3; // Genera un pulso rojo cada 0.3 segundos mientras recibes ataque
+            }
         }
     }
 }

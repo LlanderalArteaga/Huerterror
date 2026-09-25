@@ -4,12 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>El Huerterror - 3D FPS/TPS Game</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Estilos personalizados -->
     <link rel="stylesheet" href="./assets/css/styles.css">
-
-    <!-- Import maps para Three.js y Rapier3D -->
     <script type="importmap">
     {
         "imports": {
@@ -21,41 +17,86 @@
     </script>
 </head>
 <body>
-
-    <!-- Canvas de renderizado 3D -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- Puntero / Mira central de disparo -->
     <div id="crosshair" class="d-none">
         <div class="crosshair-dot"></div>
     </div>
 
-    <!-- Prompt de interacción flotante [E] -->
     <div id="interactionPrompt" class="d-none">
         <span id="promptText" class="badge bg-warning text-dark fs-6 shadow">[E] Interactuar</span>
     </div>
 
-    <!-- Pantalla de Inicio / Menú Principal -->
-    <div id="startScreen" class="overlay-screen active d-flex flex-column justify-content-center align-items-center">
-        <h1 class="display-3 text-warning fw-bold mb-3">EL HUERTERROR</h1>
-        <p class="lead text-light mb-4">Defiende la granja de los invasores zombies usando tus proyectiles de jitomate.</p>
-        
-        <div class="card bg-dark text-white p-4 mb-4 border-warning shadow" style="max-width: 500px;">
-            <h5 class="card-title text-warning border-bottom pb-2">Controles del juego:</h5>
-            <ul class="list-unstyled mb-0 small">
-                <li><strong>W, A, S, D:</strong> Moverse</li>
-                <li><strong>SHIFT:</strong> Correr</li>
-                <li><strong>Clic Izquierdo:</strong> Apuntar y Lanzar Jitomate</li>
-                <li><strong>E:</strong> Cosechar / Interactuar</li>
-            </ul>
+    <div id="startScreen" class="overlay-screen active d-flex flex-column justify-content-center align-items-center p-3">
+        <div class="text-center mb-3">
+            <h1 class="game-title display-1 fw-bold text-uppercase">EL HUERTERROR</h1>
+            <p class="subtitle lead text-warning fw-semibold">🎃 Sobrevive a la noche zombie defendiendo la granja 🎃</p>
         </div>
 
-        <button id="btnStartGame" class="btn btn-warning btn-lg px-5 py-3 fw-bold shadow">¡COMENZAR JUEGO!</button>
+        <div class="container" style="max-width: 850px;">
+            <div class="row g-3 justify-content-center mb-4">
+                <div class="col-md-6">
+                    <div class="glass-card p-3 h-100 border-orange">
+                        <h5 class="text-warning border-bottom border-secondary pb-2 mb-3">
+                            🕹️ Controles de Supervivencia
+                        </h5>
+                        <ul class="list-unstyled mb-0 controls-list">
+                            <li class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Moverse:</span>
+                                <div>
+                                    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
+                                </div>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Correr:</span>
+                                <kbd>SHIFT</kbd>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Apuntar / Disparar:</span>
+                                <kbd>Clic Izquierdo</kbd>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Cosechar / Recoger:</span>
+                                <kbd>E</kbd>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center">
+                                <span>Rotar Cámara:</span>
+                                <span class="text-muted small">Mouse</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="glass-card p-3 h-100 border-green">
+                        <h5 class="text-success border-bottom border-secondary pb-2 mb-3">
+                            📜 Guía del Huerto
+                        </h5>
+                        <ol class="small text-light ps-3 mb-0 instructions-list">
+                            <li class="mb-2">
+                                <strong class="text-warning">Lanza Jitomates:</strong> Elimina a los zombies antes de que te acorralen.
+                            </li>
+                            <li class="mb-2">
+                                <strong class="text-warning">Recarga Munición:</strong> Acércate a los cultivos brillosos de jitomate y presiona <kbd>E</kbd> para cosechar.
+                            </li>
+                            <li class="mb-2">
+                                <strong class="text-warning">Cumple el Objetivo:</strong> Derrota la cantidad requerida de zombies para activar las <span class="text-success fw-bold">Puertas Místicas</span>.
+                            </li>
+                            <li>
+                                <strong class="text-warning">Escapa:</strong> Atraviesa los portales verdes brillantes para avanzar de nivel.
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button id="btnStartGame" class="btn btn-start btn-lg px-5 py-3 fw-bold shadow-lg">
+            ¡COMENZAR LA CACERÍA!
+        </button>
     </div>
 
-    <!-- HUD (Interfaz en Pantalla de Juego) -->
     <div id="gameHUD" class="d-none">
-        <!-- Barra de Salud -->
         <div id="healthContainer" class="hud-box">
             <span class="hud-label">VIDA</span>
             <div class="progress bg-secondary" style="height: 20px; width: 180px;">
@@ -63,39 +104,48 @@
             </div>
         </div>
 
-        <!-- Objetivo Principal -->
         <div id="objectiveContainer" class="hud-box border-warning">
             <span class="hud-label text-warning">NIVEL 1: OBJETIVO</span>
             <span id="objectiveText" class="badge bg-warning text-dark fs-6">Elimina Zombies: 0 / 10</span>
         </div>
 
-        <!-- Indicador de Munición -->
         <div id="ammoContainer" class="hud-box">
             <span class="hud-label">JITOMATES</span>
             <span id="ammoCount" class="badge bg-warning text-dark fs-5">10 / 10</span>
         </div>
 
-        <!-- Bajas de enemigos -->
         <div id="scoreContainer" class="hud-box">
             <span class="hud-label">ZOMBIES DERROTADOS</span>
             <span id="scoreCount" class="badge bg-danger fs-5">0</span>
         </div>
 
-        <!-- Temporizador -->
         <div id="timerContainer" class="hud-box">
             <span class="hud-label">TIEMPO SOBREVIVIDO</span>
             <span id="timerCount" class="badge bg-info text-dark fs-5">00:00</span>
         </div>
     </div>
 
-    <!-- Pantalla de Game Over / Victoria -->
-    <div id="gameOverScreen" class="overlay-screen d-none flex-column justify-content-center align-items-center">
-        <h1 id="endTitle" class="display-3 fw-bold mb-3">GAME OVER</h1>
-        <p id="endMessage" class="lead text-light mb-4">Los zombies arrasaron con el huerto.</p>
-        <button id="btnRestartGame" class="btn btn-outline-light btn-lg px-5 py-3 fw-bold">JUGAR DE NUEVO</button>
+    <div id="gameOverScreen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
+        <h1 id="endTitle" class="game-over-title display-1 fw-bold text-danger mb-2">GAME OVER</h1>
+        <p id="endMessage" class="lead text-light mb-4">Los zombies devoraron tus cosechas y tu cerebro.</p>
+        
+        <div class="glass-card p-4 mb-4 border-danger text-center" style="min-width: 300px;">
+            <h5 class="text-danger mb-3 border-bottom border-secondary pb-2">Estadísticas Finales</h5>
+            <div class="d-flex justify-content-between mb-2 fs-6">
+                <span class="text-secondary">Zombies Derrotados:</span>
+                <span id="finalScore" class="fw-bold text-warning">0</span>
+            </div>
+            <div class="d-flex justify-content-between fs-6">
+                <span class="text-secondary">Tiempo Sobrevivido:</span>
+                <span id="finalTime" class="fw-bold text-info">00:00</span>
+            </div>
+        </div>
+
+        <button id="btnRestartGame" class="btn btn-danger btn-lg px-5 py-3 fw-bold btn-restart shadow-lg">
+            🔄 JUGAR DE NUEVO
+        </button>
     </div>
 
-    <!-- Archivo principal del módulo -->
     <script type="module" src="./assets/js/main.js"></script>
 </body>
 </html>

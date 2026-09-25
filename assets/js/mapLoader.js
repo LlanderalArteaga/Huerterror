@@ -42,9 +42,9 @@ export async function loadCustomMap(scene) {
 
     // --- LUNA (Modelo visual en la bóveda celeste) ---
     const moonGeo = new THREE.SphereGeometry(6, 16, 16);
-    const moonMat = new THREE.MeshBasicMaterial({ color: 0xfffae6, fog: false }); 
+    const moonMat = new THREE.MeshBasicMaterial({ color: 0xfffae6, fog: false });
     const moonMesh = new THREE.Mesh(moonGeo, moonMat);
-    moonMesh.position.copy(moonPosition); 
+    moonMesh.position.copy(moonPosition);
     mapGroup.add(moonMesh);
 
     // --- CIELO ESTRELLADO 360° (Domo hemisférico alrededor de todo el mapa) ---
@@ -64,12 +64,12 @@ export async function loadCustomMap(scene) {
     }
 
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-    
-    const starMat = new THREE.PointsMaterial({ 
-        color: 0xffffff, 
-        size: 0.6, 
-        transparent: true, 
-        opacity: 0.9, 
+
+    const starMat = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.6,
+        transparent: true,
+        opacity: 0.9,
         fog: false // Ignora la niebla para que brillen en todo el domo
     });
     const stars = new THREE.Points(starGeo, starMat);
@@ -84,7 +84,7 @@ export async function loadCustomMap(scene) {
     mapGroup.add(ground);
 
     const pathMat = new THREE.MeshStandardMaterial({ color: 0x3e2d21, roughness: 0.9 });
-    
+
     const nsPath = new THREE.Mesh(new THREE.PlaneGeometry(6, 48), pathMat);
     nsPath.rotation.x = -Math.PI / 2;
     nsPath.position.set(0, 0.02, -1);
@@ -440,31 +440,33 @@ export async function loadCustomMap(scene) {
     const fence2 = models['Fence2'];
     const fenceStep = 0.7;
 
+    // Vallas Norte y Sur (z = ±25)
     if (fence1) {
         for (let x = -25; x <= 25; x += fenceStep * 2) {
-            if (x > -4 && x < 4) continue;
-            spawnObject(fence1, x, -23, 1.0, 0, 0.0, true);
-            spawnObject(fence1, x, 23, 1.0, 0, 0.0, true);
+            if (x > -2.2 && x < 2.2) continue; // Deja exactamente el espacio para los arcos Norte/Sur
+            spawnObject(fence1, x, -25, 1.0, 0, 0.0, true);
+            spawnObject(fence1, x, 25, 1.0, 0, 0.0, true);
         }
     }
     if (fence2) {
         for (let x = -25 + fenceStep; x <= 25; x += fenceStep * 2) {
-            if (x > -4 && x < 4) continue;
-            spawnObject(fence2, x, -23, 1.0, 0, 0.0, true);
-            spawnObject(fence2, x, 23, 1.0, 0, 0.0, true);
+            if (x > -2.2 && x < 2.2) continue;
+            spawnObject(fence2, x, -25, 1.0, 0, 0.0, true);
+            spawnObject(fence2, x, 25, 1.0, 0, 0.0, true);
         }
     }
 
+    // Vallas Este y Oeste (x = ±25)
     if (fence1) {
-        for (let z = -23; z <= 23; z += fenceStep * 2) {
-            if (z > -4 && z < 2) continue;
+        for (let z = -25; z <= 25; z += fenceStep * 2) {
+            if (z > -3.2 && z < 1.2) continue; // Deja el espacio para los arcos Este/Oeste (camino z=-1)
             spawnObject(fence1, -25, z, 1.0, Math.PI / 2, 0.0, true);
             spawnObject(fence1, 25, z, 1.0, Math.PI / 2, 0.0, true);
         }
     }
     if (fence2) {
-        for (let z = -23 + fenceStep; z <= 23; z += fenceStep * 2) {
-            if (z > -4 && z < 2) continue;
+        for (let z = -25 + fenceStep; z <= 25; z += fenceStep * 2) {
+            if (z > -3.2 && z < 1.2) continue;
             spawnObject(fence2, -25, z, 1.0, Math.PI / 2, 0.0, true);
             spawnObject(fence2, 25, z, 1.0, Math.PI / 2, 0.0, true);
         }

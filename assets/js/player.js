@@ -15,12 +15,11 @@ const runSpeed = 6.0;
 const PLAYER_HEIGHT_OFFSET = 0; 
 const PLAYER_RADIUS = 0.2;
 
-// Límites ajustados exactamente al perímetro de las cercas y el terreno (64x64)
 export const MAP_LIMITS = {
-    minX: -32,
-    maxX: 32,
-    minZ: -32,
-    maxZ: 32 // Permite llegar hasta la entrada sur sin salirse del mapa
+    minX: -26,
+    maxX: 26,
+    minZ: -26,
+    maxZ: 26
 };
 
 export let yaw = 0;   
@@ -34,7 +33,6 @@ export function initPlayer(scene, camera) {
     gltfLoader.load('./assets/models/character/Character_Male_1.gltf', (gltf) => {
         playerMesh = gltf.scene;
 
-        // Activar sombras para todas las sub-mallas del personaje
         playerMesh.traverse((child) => {
             if (child.isMesh) {
                 child.castShadow = true;
@@ -70,7 +68,15 @@ export function initPlayer(scene, camera) {
                     track.name = track.name.replace('mixamorig', '');
                 });
 
-                actions[item.name] = mixer.clipAction(clip);
+                const action = mixer.clipAction(clip);
+
+                // Configurar animación de lanzamiento para ejecutarse 1 sola vez
+                if (item.name === 'throw') {
+                    action.setLoop(THREE.LoopOnce, 1);
+                    action.clampWhenFinished = true;
+                }
+
+                actions[item.name] = action;
             });
         });
     });
@@ -95,7 +101,20 @@ export function initPlayer(scene, camera) {
 }
 
 export function switchAnimation(name) {
-    if (!actions[name] || activeAction === actions[name]) return;
+    if (!actions[name]) return;
+
+    // Si es lanzamiento, reiniciar y reproducir por encima
+    if (name === 'throw') {
+        if (activeAction && activeAction !== actions['throw']) {
+            activeAction.fadeOut(0.1);
+        }
+        actions['throw'].stop();
+        actions['throw'].reset().play();
+        activeAction = actions['throw'];
+        return;
+    }
+
+    if (activeAction === actions[name]) return;
     if (activeAction) activeAction.fadeOut(0.15);
     activeAction = actions[name];
     activeAction.reset().fadeIn(0.15).play();
@@ -121,25 +140,25 @@ export function updatePlayer(delta, camera) {
         moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
         moveDir.multiplyScalar(speed * delta);
 
-        // Movimiento en X comprobando colisiones
         const nextXPos = playerMesh.position.clone();
         nextXPos.x += moveDir.x;
         if (!checkCollision(nextXPos, PLAYER_RADIUS)) {
             playerMesh.position.x = nextXPos.x;
         }
 
-        // Movimiento en Z comprobando colisiones
         const nextZPos = playerMesh.position.clone();
         nextZPos.z += moveDir.z;
         if (!checkCollision(nextZPos, PLAYER_RADIUS)) {
             playerMesh.position.z = nextZPos.z;
         }
 
-        // Límites strictly del escenario
         playerMesh.position.x = Math.max(MAP_LIMITS.minX, Math.min(MAP_LIMITS.maxX, playerMesh.position.x));
         playerMesh.position.z = Math.max(MAP_LIMITS.minZ, Math.min(MAP_LIMITS.maxZ, playerMesh.position.z));
 
-        switchAnimation(keys['shift'] ? 'run' : 'walk');
+        // Solo cambiar a caminata/carrera si la animación de lanzamiento no está activa
+        if (activeAction !== actions['throw'] || !actions['throw'].isRunning()) {
+            switchAnimation(keys['shift'] ? 'run' : 'walk');
+        }
     } else {
         if (activeAction && activeAction !== actions['throw']) {
             activeAction.fadeOut(0.2);

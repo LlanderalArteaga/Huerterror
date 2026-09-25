@@ -82,15 +82,23 @@ export function updateHUD() {
         timerCount.textContent = mins + ':' + secs;
     }
 
-    // Lógica del Objetivo Nivel 1
+    // Actualización dinámica según el Nivel actual
     if (objectiveText) {
         if (gameState.level === 1) {
             if (!gameState.doorOpen) {
-                objectiveText.textContent = `Elimina Zombies: ${gameState.zombiesKilled} / ${gameState.targetZombies}`;
+                objectiveText.textContent = 'Elimina Zombies: ' + gameState.zombiesKilled + ' / ' + gameState.targetZombies;
                 objectiveText.className = 'badge bg-warning text-dark fs-6';
             } else {
                 objectiveText.textContent = '¡Puertas abiertas! Escapa por la salida 🚪';
                 objectiveText.className = 'badge bg-success text-white fs-6';
+            }
+        } else if (gameState.level === 2) {
+            if (!gameState.doorOpen) {
+                objectiveText.textContent = 'NIVEL 2: Encuentra Llaves: ' + gameState.keysFound + ' / ' + gameState.targetKeys + ' 🔑';
+                objectiveText.className = 'badge bg-danger text-white fs-6';
+            } else {
+                objectiveText.textContent = '¡Horda furiosa! ¡Corre a la puerta! 🚪';
+                objectiveText.className = 'badge bg-danger text-white fs-6';
             }
         }
     }
@@ -106,12 +114,53 @@ export function showGameOverScreen(title, message) {
     const screen = document.getElementById('gameOverScreen');
     const endTitle = document.getElementById('endTitle');
     const endMessage = document.getElementById('endMessage');
+    const finalScore = document.getElementById('finalScore');
+    const finalTime = document.getElementById('finalTime');
 
     if (endTitle) endTitle.textContent = title;
     if (endMessage) endMessage.textContent = message;
+
+    if (finalScore) finalScore.textContent = gameState.score;
+    if (finalTime) {
+        const mins = Math.floor(gameState.time / 60).toString().padStart(2, '0');
+        const secs = Math.floor(gameState.time % 60).toString().padStart(2, '0');
+        finalTime.textContent = mins + ':' + secs;
+    }
 
     if (screen) {
         screen.classList.remove('d-none');
         screen.classList.add('active');
     }
+}
+
+let damageFlashElem = null;
+let flashTimeout = null;
+
+function createDamageFlashUI() {
+    if (document.getElementById('damage-flash')) return;
+    
+    damageFlashElem = document.createElement('div');
+    damageFlashElem.id = 'damage-flash';
+    damageFlashElem.style.position = 'fixed';
+    damageFlashElem.style.top = '0';
+    damageFlashElem.style.left = '0';
+    damageFlashElem.style.width = '100vw';
+    damageFlashElem.style.height = '100vh';
+    damageFlashElem.style.backgroundColor = 'rgba(255, 0, 0, 0.4)';
+    damageFlashElem.style.pointerEvents = 'none';
+    damageFlashElem.style.opacity = '0';
+    damageFlashElem.style.transition = 'opacity 0.1s ease-out';
+    damageFlashElem.style.zIndex = '9999';
+    document.body.appendChild(damageFlashElem);
+}
+
+export function triggerDamageFlash() {
+    if (!damageFlashElem) createDamageFlashUI();
+
+    damageFlashElem.style.opacity = '1';
+
+    if (flashTimeout) clearTimeout(flashTimeout);
+    flashTimeout = setTimeout(() => {
+        if (damageFlashElem) damageFlashElem.style.opacity = '0';
+    }, 150);
 }
