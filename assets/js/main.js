@@ -5,15 +5,14 @@ import { initPlayer, updatePlayer } from './player.js';
 import { initTomatoProps, updateTomatoes } from './tomato.js';
 import { initEnemiesAndProps, updateEnemies, spawnZombie } from './enemies.js';
 import { initGameLogic, updateGame, gameState } from './game.js';
+import { initAnimals, updateAnimals } from './animals.js'; // <-- Importar el nuevo módulo
 import { initUI } from './ui.js';
 
 let scene, camera, renderer, clock;
 let spawnTimer = 0;
 
 function init() {
-    // 1. Crear Escena, Cámara y Renderizador
     scene = new THREE.Scene();
-    // Color de fondo nocturno para coincidir con la atmósfera de mapLoader.js
     scene.background = new THREE.Color(0x0f101d);
 
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -25,26 +24,22 @@ function init() {
 
     clock = new THREE.Clock();
 
-    // Habilitar proyección de sombras suaves
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // 2. Cargar físicas y mapa modular
     initPhysics().then(async () => {
         await loadCustomMap(scene);
     }).catch(err => console.error("Error al cargar Rapier Physics / Mapa:", err));
 
-    // 3. Inicializar Módulos de forma segura
     initGameLogic(scene);
     initPlayer(scene, camera);
     initTomatoProps(scene);
     initEnemiesAndProps(scene);
+    initAnimals(scene); // <-- Inicializar el perro
     initUI();
 
-    // Ajustar ventana al redimensionar
     window.addEventListener('resize', onWindowResize);
 
-    // Iniciar Bucle de Animación
     animate();
 }
 
@@ -64,9 +59,9 @@ function animate() {
         updatePlayer(delta, camera);
         updateTomatoes(delta, scene);
         updateEnemies(delta, scene);
+        updateAnimals(delta); // <-- Actualizar animaciones del perro
         updateGame(delta, scene);
 
-        // Generar Zombie cada 4 segundos
         spawnTimer += delta;
         if (spawnTimer >= 4.0) {
             spawnZombie(scene);
