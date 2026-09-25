@@ -25,6 +25,16 @@
     <!-- Canvas de renderizado 3D -->
     <canvas id="gameCanvas"></canvas>
 
+    <!-- Puntero / Mira central de disparo -->
+    <div id="crosshair" class="d-none">
+        <div class="crosshair-dot"></div>
+    </div>
+
+    <!-- Prompt de interacción flotante [E] -->
+    <div id="interactionPrompt" class="d-none">
+        <span id="promptText" class="badge bg-warning text-dark fs-6 shadow">[E] Interactuar</span>
+    </div>
+
     <!-- Pantalla de Inicio / Menú Principal -->
     <div id="startScreen" class="overlay-screen active d-flex flex-column justify-content-center align-items-center">
         <h1 class="display-3 text-warning fw-bold mb-3">EL HUERTERROR</h1>
@@ -36,7 +46,7 @@
                 <li><strong>W, A, S, D:</strong> Moverse</li>
                 <li><strong>SHIFT:</strong> Correr</li>
                 <li><strong>Clic Izquierdo:</strong> Apuntar y Lanzar Jitomate</li>
-                <li><strong>E:</strong> Cosechar jitomates en la planta</li>
+                <li><strong>E:</strong> Cosechar / Interactuar</li>
             </ul>
         </div>
 
@@ -51,6 +61,12 @@
             <div class="progress bg-secondary" style="height: 20px; width: 180px;">
                 <div id="healthBar" class="progress-bar bg-danger fw-bold" role="progressbar" style="width: 100%;">100%</div>
             </div>
+        </div>
+
+        <!-- Objetivo Principal -->
+        <div id="objectiveContainer" class="hud-box border-warning">
+            <span class="hud-label text-warning">NIVEL 1: OBJETIVO</span>
+            <span id="objectiveText" class="badge bg-warning text-dark fs-6">Elimina Zombies: 0 / 10</span>
         </div>
 
         <!-- Indicador de Munición -->
@@ -70,14 +86,9 @@
             <span class="hud-label">TIEMPO SOBREVIVIDO</span>
             <span id="timerCount" class="badge bg-info text-dark fs-5">00:00</span>
         </div>
-
-        <!-- Muestra el estado del ciclo Día/Noche -->
-        <div id="cycleContainer" class="hud-box">
-            <span id="cycleText" class="badge bg-primary fs-6">DÍA ☀️</span>
-        </div>
     </div>
 
-    <!-- Pantalla de Victoria / Game Over -->
+    <!-- Pantalla de Game Over / Victoria -->
     <div id="gameOverScreen" class="overlay-screen d-none flex-column justify-content-center align-items-center">
         <h1 id="endTitle" class="display-3 fw-bold mb-3">GAME OVER</h1>
         <p id="endMessage" class="lead text-light mb-4">Los zombies arrasaron con el huerto.</p>

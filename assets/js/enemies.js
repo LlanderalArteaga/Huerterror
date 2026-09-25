@@ -5,7 +5,7 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { addDynamicBody, checkCollision } from './physics.js';
 import { activeTomatoes } from './tomato.js';
 import { playerMesh, MAP_LIMITS } from './player.js';
-import { gameState } from './game.js';
+import { gameState, onZombieKilled } from './game.js';
 import { updateHUD } from './ui.js';
 
 export const zombies = [];
@@ -160,8 +160,8 @@ export function updateEnemies(delta, scene) {
                 scene.remove(tom.mesh);
                 activeTomatoes.splice(j, 1);
 
-                gameState.score++;
-                updateHUD();
+                // Incrementa score, zombiesKilled y actualiza la UI del objetivo
+                onZombieKilled();
                 break;
             }
         }

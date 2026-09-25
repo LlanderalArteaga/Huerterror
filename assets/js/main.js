@@ -5,7 +5,7 @@ import { initPlayer, updatePlayer } from './player.js';
 import { initTomatoProps, updateTomatoes } from './tomato.js';
 import { initEnemiesAndProps, updateEnemies, spawnZombie } from './enemies.js';
 import { initGameLogic, updateGame, gameState } from './game.js';
-import { initAnimals, updateAnimals } from './animals.js'; // <-- Importar el nuevo módulo
+import { initAnimals, updateAnimals } from './animals.js';
 import { initUI } from './ui.js';
 
 let scene, camera, renderer, clock;
@@ -22,6 +22,7 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+    // Se asigna a la variable global sin usar 'const'
     clock = new THREE.Clock();
 
     renderer.shadowMap.enabled = true;
@@ -35,7 +36,7 @@ function init() {
     initPlayer(scene, camera);
     initTomatoProps(scene);
     initEnemiesAndProps(scene);
-    initAnimals(scene); // <-- Inicializar el perro
+    initAnimals(scene);
     initUI();
 
     window.addEventListener('resize', onWindowResize);
@@ -59,7 +60,7 @@ function animate() {
         updatePlayer(delta, camera);
         updateTomatoes(delta, scene);
         updateEnemies(delta, scene);
-        updateAnimals(delta); // <-- Actualizar animaciones del perro
+        updateAnimals(delta);
         updateGame(delta, scene);
 
         spawnTimer += delta;
