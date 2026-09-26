@@ -63,27 +63,8 @@ export function initEnemiesAndProps(scene) {
                 child.receiveShadow = true;
             }
         });
-        buildDestructibleTower(scene, 4, ZOMBIE_HEIGHT_OFFSET, -5);
     }, undefined, (err) => console.warn("Caja no encontrada, omitiendo props"));
 }
-
-/* function buildDestructibleTower(scene, x, y, z) {
-    if (!crateModel) return;
-    for (let i = 0; i < 3; i++) {
-        const crate = crateModel.clone();
-        crate.scale.set(0.3, 0.3, 0.3);
-        crate.position.set(x, y + (i * 0.4), z);
-        crate.traverse((child) => {
-            if (child.isMesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
-            }
-        });
-        scene.add(crate);
-        addDynamicBody(crate, 0.3, 0.3, 0.3, 2.0);
-    }
-} */
-
 
 let damageFlashCooldown = 0;
 
@@ -121,6 +102,16 @@ export function spawnZombie(scene) {
     const initialSpeed = isEnraged ? 3.5 : 1.8;
 
     zombies.push({ mesh: zombie, speed: initialSpeed, mixer });
+}
+
+// Elimina todos los zombies activos de la escena y reinicia la lista
+export function clearEnemies(scene) {
+    zombies.forEach((z) => {
+        if (z && z.mesh) {
+            scene.remove(z.mesh);
+        }
+    });
+    zombies.length = 0;
 }
 
 export function updateEnemies(delta, scene) {

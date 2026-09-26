@@ -3,7 +3,7 @@ import { initPhysics, updatePhysics } from './physics.js';
 import { loadCustomMap } from './mapLoader.js';
 import { initPlayer, updatePlayer } from './player.js';
 import { initTomatoProps, updateTomatoes } from './tomato.js';
-import { initEnemiesAndProps, updateEnemies, spawnZombie } from './enemies.js';
+import { initEnemiesAndProps, updateEnemies, spawnZombie, clearEnemies } from './enemies.js';
 import { initGameLogic, updateGame, gameState } from './game.js';
 import { initAnimals, updateAnimals } from './animals.js';
 import { initGates, updateGates } from './doors.js';
@@ -62,10 +62,12 @@ function animate() {
     const delta = clock.getDelta();
 
     if (gameState.isPlaying) {
-        // Gestión de carga de props según el nivel activo
+        // Gestión de carga de props y reinicio de entidades según el nivel activo
         if (gameState.level !== activeLevelLoaded) {
             clearChests(scene);
             clearTomb(scene);
+            clearEnemies(scene); // <-- Elimina los zombies existentes en pantalla
+            spawnTimer = 0;      // <-- Reinicia el tiempo de aparición
 
             if (gameState.level === 2) {
                 spawnChests(scene); // 3 cofres para el nivel 2
@@ -101,10 +103,12 @@ function animate() {
             spawnTimer = 0;
         }
     } else {
-        // Si no está jugando, reiniciamos el control de nivel cargado
+        // Al morir o pausar, se limpia todo para estar listos para reiniciar
         if (activeLevelLoaded !== 0) {
             clearChests(scene);
             clearTomb(scene);
+            clearEnemies(scene); // <-- Vacía los zombies de la partida que acaba de terminar
+            spawnTimer = 0;
             activeLevelLoaded = 0;
         }
     }
