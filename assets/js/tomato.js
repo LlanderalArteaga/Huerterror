@@ -10,6 +10,13 @@ export const activeTomatoes = [];
 const activeParticles = [];
 let tomatoModel = null;
 
+// Parámetro configurable: Potencia de tiro dinámica
+export let throwForce = 25;
+
+export function setThrowForce(val) {
+    throwForce = parseFloat(val);
+}
+
 // Modelos base precargados de las 4 etapas de crecimiento
 const loadedStages = { 1: null, 2: null, 3: null, 4: null };
 
@@ -18,15 +25,14 @@ const plants = [
     { id: 'static_1', pos: new THREE.Vector3(16, 0, 9.5), isRenewable: false, isReady: true, mesh: null },
     { id: 'static_2', pos: new THREE.Vector3(18, 0, -12.0), isRenewable: false, isReady: true, mesh: null },
     { id: 'static_3', pos: new THREE.Vector3(-18, 0, 12.0), isRenewable: false, isReady: true, mesh: null },
-    { id: 'renewable', pos: new THREE.Vector3(-22, 0, -22.0), isRenewable: true, isReady: true, mesh: null } // Planta oculta
+    { id: 'renewable', pos: new THREE.Vector3(-22, 0, -22.0), isRenewable: true, isReady: true, mesh: null }
 ];
 
-// Genera una explosión / salpicadura de trozos de jitomate
 export function createTomatoExplosion(scene, position) {
     const particleCount = 10;
     const geometry = new THREE.SphereGeometry(0.08, 6, 6);
     const material = new THREE.MeshStandardMaterial({
-        color: 0xd32f2f, // Rojo jitomate
+        color: 0xd32f2f,
         roughness: 0.3,
         metalness: 0.1
     });
@@ -35,7 +41,6 @@ export function createTomatoExplosion(scene, position) {
         const particle = new THREE.Mesh(geometry, material);
         particle.position.copy(position);
 
-        // Disparo de trozos en direcciones aleatorias
         const velocity = new THREE.Vector3(
             (Math.random() - 0.5) * 5,
             Math.random() * 4 + 1.5,
@@ -52,7 +57,6 @@ export function createTomatoExplosion(scene, position) {
     }
 }
 
-// Actualiza la trayectoria y encogimiento de los trozos de la explosión
 function updateExplosions(delta, scene) {
     for (let i = activeParticles.length - 1; i >= 0; i--) {
         const p = activeParticles[i];
@@ -76,7 +80,6 @@ function updateExplosions(delta, scene) {
 export function initTomatoProps(scene) {
     const gltfLoader = new GLTFLoader();
 
-    // 1. Cargar modelo del proyectil Jitomate
     gltfLoader.load('./assets/models/props/Tomato.glb', (gltf) => {
         tomatoModel = gltf.scene;
         tomatoModel.scale.set(0.5, 0.5, 0.5);
@@ -88,7 +91,6 @@ export function initTomatoProps(scene) {
         });
     });
 
-    // 2. Cargar las 4 etapas de crecimiento de la planta
     const stagesToLoad = [
         { id: 1, path: './assets/models/props/Tomato_1.glb' },
         { id: 2, path: './assets/models/props/Tomato_2.glb' },
@@ -120,14 +122,12 @@ export function initTomatoProps(scene) {
         });
     });
 
-    // Disparo con clic izquierdo
     window.addEventListener('click', () => {
         if (document.pointerLockElement === document.body && gameState.isPlaying && gameState.ammo > 0 && playerMesh) {
             shootTomato(scene);
         }
     });
 
-    // Recarga con la tecla 'E'
     window.addEventListener('keydown', (e) => {
         if (e.key.toLowerCase() === 'e' && playerMesh && gameState.isPlaying) {
             plants.forEach((plant) => {
@@ -192,12 +192,10 @@ function harvestAndRegrow(scene, plant) {
 function shootTomato(scene) {
     if (!playerMesh) return;
 
-    // 1. Iniciar la animación de tiro e indicar gasto de munición de inmediato
     switchAnimation('throw');
     gameState.ammo--;
     updateHUD();
 
-    // 2. Esperar 250ms a que el brazo del personaje se extienda para soltar el jitomate
     setTimeout(() => {
         if (!playerMesh) return;
 
@@ -222,8 +220,8 @@ function shootTomato(scene) {
         direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
         direction.normalize();
 
-        const speed = 18.0;
-        const velocity = direction.multiplyScalar(speed);
+        // Aplicar fuerza configurada por el usuario
+        const velocity = direction.multiplyScalar(throwForce);
 
         scene.add(tomato);
 
@@ -233,20 +231,17 @@ function shootTomato(scene) {
             life: 3.0,
             gracePeriod: 0.15
         });
-    }, 700); // 250 ms ajustados a la extensión del brazo
+    }, 250);
 }
 
 export function updateTomatoes(delta, scene) {
-    // Actualizar partículas de salpicadura activas
     updateExplosions(delta, scene);
 
-    // 1. Actualización de física y colisiones de los tomates
     for (let i = activeTomatoes.length - 1; i >= 0; i--) {
         const t = activeTomatoes[i];
         t.life -= delta;
         if (t.gracePeriod > 0) t.gracePeriod -= delta;
 
-        // Aplicar gravedad
         t.velocity.y -= 7.0 * delta;
 
         const nextPos = t.mesh.position.clone().addScaledVector(t.velocity, delta);
@@ -255,16 +250,11 @@ export function updateTomatoes(delta, scene) {
         let hasHit = false;
 
         if (t.gracePeriod <= 0) {
-            // A. Impacto con el suelo
             if (nextPos.y <= 0.1) {
                 hasHit = true;
-            }
-            // B. Impacto con objetos colisionables (árboles, casas, cercas)
-            else if (checkCollision(nextPos, 0.3)) {
+            } else if (checkCollision(nextPos, 0.3)) {
                 hasHit = true;
-            }
-            // C. Impacto con los límites del mapa
-            else if (
+            } else if (
                 nextPos.x <= MAP_LIMITS.minX || nextPos.x >= MAP_LIMITS.maxX ||
                 nextPos.z <= MAP_LIMITS.minZ || nextPos.z >= MAP_LIMITS.maxZ
             ) {
@@ -284,7 +274,6 @@ export function updateTomatoes(delta, scene) {
         }
     }
 
-    // 2. Control del Prompt de Interacción [E] Cosechar
     if (playerMesh && gameState.isPlaying) {
         let isNearReadyPlant = false;
 

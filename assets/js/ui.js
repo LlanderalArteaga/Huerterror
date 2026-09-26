@@ -1,4 +1,5 @@
 import { gameState, startGame, startLevel2Game, startLevel3Game } from './game.js';
+import { setThrowForce } from './tomato.js';
 
 export function setCrosshairVisible(visible) {
     const crosshair = document.getElementById('crosshair');
@@ -27,6 +28,21 @@ export function initUI(onStartCallback) {
     const btnRestart = document.getElementById('btnRestartGame');
     const btnStartLevel2 = document.getElementById('btnStartLevel2');
     const btnStartLevel3 = document.getElementById('btnStartLevel3');
+
+    // Sincronización del parámetro configurable (Sliders en Niveles 1, 2 y 3)
+    const sliders = document.querySelectorAll('.throwForceSlider');
+    const valueDisplays = document.querySelectorAll('.throwForceValue');
+
+    sliders.forEach((slider) => {
+        slider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            setThrowForce(val);
+
+            // Actualiza los valores y deslizadores de todas las pantallas
+            sliders.forEach((s) => (s.value = val));
+            valueDisplays.forEach((v) => (v.textContent = val));
+        });
+    });
 
     if (btnStart) {
         btnStart.addEventListener('click', () => {
@@ -221,7 +237,7 @@ export function showGameOverScreen(title, message) {
 }
 
 export function showVictoryScreen() {
-    gameState.isPlaying = false; // Garantiza la congelación del bucle del juego
+    gameState.isPlaying = false;
     setCrosshairVisible(false);
     hideInteractionPrompt();
 
@@ -277,12 +293,11 @@ function createDamageFlashUI() {
 }
 
 export function triggerDamageFlash() {
-    if (!damageFlashElem) createDamageFlashUI();
-
+    createDamageFlashUI();
+    if (!damageFlashElem) return;
     damageFlashElem.style.opacity = '1';
-
     if (flashTimeout) clearTimeout(flashTimeout);
     flashTimeout = setTimeout(() => {
-        if (damageFlashElem) damageFlashElem.style.opacity = '0';
+        damageFlashElem.style.opacity = '0';
     }, 150);
 }

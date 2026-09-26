@@ -39,7 +39,7 @@
         </div>
 
         <div class="container" style="max-width: 850px;">
-            <div class="row g-3 justify-content-center mb-4">
+            <div class="row g-3 justify-content-center mb-3">
                 <div class="col-md-6">
                     <div class="glass-card p-3 h-100 border-orange">
                         <h5 class="text-warning border-bottom border-secondary pb-2 mb-3">
@@ -85,155 +85,175 @@
                             <li class="mb-2">
                                 <strong class="text-warning">Recarga Munición:</strong> Acércate a los cultivos
                                 brillosos de jitomate y presiona <kbd>E</kbd> para cosechar.
-                            </li>
-                            <li class="mb-2">
-                                <strong class="text-warning">Cumple el Objetivo:</strong> Derrota la cantidad requerida
-                                de zombies para activar las <span class="text-success fw-bold">Puertas Místicas</span>.
-                            </li>
-                            <li>
-                                <strong class="text-warning">Escapa:</strong> Atraviesa los portales verdes brillantes
-                                para avanzar de nivel.
-                            </li>
-                        </ol>
-                    </div>
+                        <li class="mb-2">
+                            <strong class="text-warning">Cumple el Objetivo:</strong> Derrota la cantidad requerida
+                            de zombies para activar las <span class="text-success fw-bold">Puertas Místicas</span>.
+                        </li>
+                        <li>
+                            <strong class="text-warning">Escapa:</strong> Atraviesa los portales verdes brillantes
+                            para avanzar de nivel.
+                        </li>
+                    </ol>
                 </div>
             </div>
         </div>
 
-        <button id="btnStartGame" class="btn btn-start btn-lg px-5 py-3 fw-bold shadow-lg">
-            ¡COMENZAR LA CACERÍA!
-        </button>
-    </div>
-
-    <!-- PANTALLA TRANSICIÓN A NIVEL 2 -->
-    <div id="level2Screen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
-        <div class="text-center mb-3">
-            <h1 class="game-title display-2 fw-bold text-uppercase text-warning">NIVEL 2: LA HORDA Y LAS LLAVES</h1>
-            <p class="subtitle lead text-light fw-semibold">🔑 Encuentra las 3 llaves místicas para abrir el portal
-                final 🔑</p>
-        </div>
-
-        <div class="container" style="max-width: 650px;">
-            <div class="glass-card p-4 mb-4 border-orange">
-                <h5 class="text-warning border-bottom border-secondary pb-2 mb-3">
-                    📜 Misión del Nivel 2
-                </h5>
-                <ul class="text-light small mb-0 instructions-list ps-3">
-                    <li class="mb-2">
-                        Explora la granja infestada y localiza las <strong class="text-warning">3 Llaves Místicas
-                            Brillantes</strong>.
-                    </li>
-                    <li class="mb-2">
-                        Acércate a cada llave y presiona <kbd>E</kbd> para recogerla.
-                    </li>
-                    <li class="mb-2">
-                        Los zombies no dejarán de aparecer. Mantente en movimiento para no ser rodeado.
-                    </li>
-                    <li>
-                        Una vez obtenidas las 3 llaves, corre al <strong class="text-success">Portal de Salida</strong>.
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <button id="btnStartLevel2" class="btn btn-start btn-lg px-5 py-3 fw-bold shadow-lg">
-            ¡ENFRENTAR EL NIVEL 2!
-        </button>
-    </div>
-
-    <!-- PANTALLA TRANSICIÓN A NIVEL 3 -->
-    <div id="level3Screen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
-        <div class="text-center mb-3">
-            <h1 class="game-title display-2 fw-bold text-uppercase text-danger">NIVEL 3: LA BATALLA FINAL</h1>
-            <p class="subtitle lead text-light fw-semibold">💀 Despierta al Esqueleto Guardián para romper el sello
-                final 💀</p>
-        </div>
-
-        <div class="container" style="max-width: 650px;">
-            <div class="glass-card p-4 mb-4 border-danger">
-                <h5 class="text-danger border-bottom border-secondary pb-2 mb-3">
-                    📜 Misión del Nivel 3
-                </h5>
-                <ul class="text-light small mb-0 instructions-list ps-3">
-                    <li class="mb-2">
-                        Explora el huerto y localiza los <strong class="text-warning">5 Cofres Místicos</strong>
-                        escondidos entre las estructuras.
-                    </li>
-                    <li class="mb-2">
-                        ⚠️ <strong class="text-danger">Atención:</strong> La horda de zombies está en <strong
-                            class="text-danger">furia permanente</strong> (mayor velocidad y daño).
-                    </li>
-                    <li class="mb-2">
-                        Al juntar las 5 llaves, ve al <strong class="text-warning">Ataúd Místico</strong> en el centro y
-                        presiona <kbd>E</kbd> para entregar las llaves.
-                    </li>
-                    <li>
-                        El <strong class="text-info">Esqueleto Guardián</strong> caminará hacia una de las 4 salidas al
-                        azar para abrirtela. <strong class="text-success">¡Escapa por esa puerta!</strong>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <button id="btnStartLevel3" class="btn btn-start btn-lg px-5 py-3 fw-bold shadow-lg">
-            ¡INICIAR NIVEL 3!
-        </button>
-    </div>
-
-    <!-- HUD DEL JUEGO -->
-    <div id="gameHUD" class="d-none">
-        <div id="healthContainer" class="hud-box">
-            <span class="hud-label">VIDA</span>
-            <div class="progress bg-secondary" style="height: 20px; width: 180px;">
-                <div id="healthBar" class="progress-bar bg-danger fw-bold" role="progressbar" style="width: 100%;">100%
-                </div>
-            </div>
-        </div>
-
-        <div id="objectiveContainer" class="hud-box border-warning">
-            <span id="objectiveLabel" class="hud-label text-warning">NIVEL 1: OBJETIVO</span>
-            <span id="objectiveText" class="badge bg-warning text-dark fs-6">Elimina Zombies: 0 / 10</span>
-        </div>
-
-        <div id="ammoContainer" class="hud-box">
-            <span class="hud-label">JITOMATES</span>
-            <span id="ammoCount" class="badge bg-warning text-dark fs-5">10 / 10</span>
-        </div>
-
-        <div id="scoreContainer" class="hud-box">
-            <span class="hud-label">ZOMBIES DERROTADOS</span>
-            <span id="scoreCount" class="badge bg-danger fs-5">0</span>
-        </div>
-
-        <div id="timerContainer" class="hud-box">
-            <span class="hud-label">TIEMPO SOBREVIVIDO</span>
-            <span id="timerCount" class="badge bg-info text-dark fs-5">00:00</span>
+        <!-- Control Configurable R9 / RN-08 -->
+        <div class="glass-card p-3 mb-4 text-center border-orange" style="max-width: 450px; margin: 0 auto;">
+            <label class="form-label text-warning fw-bold mb-1">
+                🎯 Potencia de Lanzamiento: <span class="throwForceValue text-white">25</span>
+            </label>
+            <input type="range" class="form-range throwForceSlider" min="10" max="50" value="25" step="1">
         </div>
     </div>
 
-    <!-- PANTALLA GAME OVER / VICTORIA -->
-    <div id="gameOverScreen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
-        <h1 id="endTitle" class="game-over-title display-1 fw-bold text-danger mb-2">GAME OVER</h1>
-        <p id="endMessage" class="lead text-light mb-4">Los zombies devoraron tus cosechas y tu cerebro.</p>
+    <button id="btnStartGame" class="btn btn-start btn-lg px-5 py-3 fw-bold shadow-lg">
+        ¡COMENZAR LA CACERÍA!
+    </button>
+</div>
 
-        <div class="glass-card p-4 mb-4 border-danger text-center" style="min-width: 300px;">
-            <h5 class="text-danger mb-3 border-bottom border-secondary pb-2">Estadísticas Finales</h5>
-            <div class="d-flex justify-content-between mb-2 fs-6">
-                <span class="text-secondary">Zombies Derrotados Totales:</span>
-                <span id="finalScore" class="fw-bold text-warning">0</span>
-            </div>
-            <div class="d-flex justify-content-between fs-6">
-                <span class="text-secondary">Tiempo Sobrevivido:</span>
-                <span id="finalTime" class="fw-bold text-info">00:00</span>
-            </div>
-        </div>
-
-        <button id="btnRestartGame" class="btn btn-danger btn-lg px-5 py-3 fw-bold btn-restart shadow-lg">
-            🔄 JUGAR DE NUEVO
-        </button>
+<!-- PANTALLA TRANSICIÓN A NIVEL 2 -->
+<div id="level2Screen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
+    <div class="text-center mb-3">
+        <h1 class="game-title display-2 fw-bold text-uppercase text-warning">NIVEL 2: LA HORDA Y LAS LLAVES</h1>
+        <p class="subtitle lead text-light fw-semibold">🔑 Encuentra las 3 llaves místicas para abrir el portal
+            final 🔑</p>
     </div>
 
-    <script type="module" src="./assets/js/main.js"></script>
-</body>
+    <div class="container" style="max-width: 650px;">
+        <div class="glass-card p-4 mb-3 border-orange">
+            <h5 class="text-warning border-bottom border-secondary pb-2 mb-3">
+                📜 Misión del Nivel 2
+            </h5>
+            <ul class="text-light small mb-0 instructions-list ps-3">
+                <li class="mb-2">
+                    Explora la granja infestada y localiza las <strong class="text-warning">3 Llaves Místicas
+                        Brillantes</strong>.
+                </li>
+                <li class="mb-2">
+                    Acércate a cada llave y presiona <kbd>E</kbd> para recogerla.
+                </li>
+                <li class="mb-2">
+                    Los zombies no dejarán de aparecer. Mantente en movimiento para no ser rodeado.
+                </li>
+                <li>
+                    Una vez obtenidas las 3 llaves, corre al <strong class="text-success">Portal de Salida</strong>.
+                </li>
+            </ul>
+        </div>
 
-</html>
+        <!-- Control Configurable R9 / RN-08 -->
+        <div class="glass-card p-3 mb-4 text-center border-orange" style="max-width: 450px; margin: 0 auto;">
+            <label class="form-label text-warning fw-bold mb-1">
+                🎯 Potencia de Lanzamiento: <span class="throwForceValue text-white">25</span>
+            </label>
+            <input type="range" class="form-range throwForceSlider" min="10" max="50" value="25" step="1">
+        </div>
+    </div>
+
+    <button id="btnStartLevel2" class="btn btn-start btn-lg px-5 py-3 fw-bold shadow-lg">
+        ¡ENFRENTAR EL NIVEL 2!
+    </button>
+</div>
+
+<!-- PANTALLA TRANSICIÓN A NIVEL 3 -->
+<div id="level3Screen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
+    <div class="text-center mb-3">
+        <h1 class="game-title display-2 fw-bold text-uppercase text-danger">NIVEL 3: LA BATALLA FINAL</h1>
+        <p class="subtitle lead text-light fw-semibold">💀 Despierta al Esqueleto Guardián para romper el sello
+            final 💀</p>
+    </div>
+
+    <div class="container" style="max-width: 650px;">
+        <div class="glass-card p-4 mb-3 border-danger">
+            <h5 class="text-danger border-bottom border-secondary pb-2 mb-3">
+                📜 Misión del Nivel 3
+            </h5>
+            <ul class="text-light small mb-0 instructions-list ps-3">
+                <li class="mb-2">
+                    Explora el huerto y localiza los <strong class="text-warning">5 Cofres Místicos</strong>
+                    escondidos entre las estructuras.
+                </li>
+                <li class="mb-2">
+                    ⚠️ <strong class="text-danger">Atención:</strong> La horda de zombies está en <strong
+                        class="text-danger">furia permanente</strong> (mayor velocidad y daño).
+                </li>
+                <li class="mb-2">
+                    Al juntar las 5 llaves, ve al <strong class="text-warning">Ataúd Místico</strong> en el centro y
+                    presiona <kbd>E</kbd> para entregar las llaves.
+                </li>
+                <li>
+                    El <strong class="text-info">Esqueleto Guardián</strong> caminará hacia una de las 4 salidas al
+                    azar para abrirtela. <strong class="text-success">¡Escapa por esa puerta!</strong>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Control Configurable R9 / RN-08 -->
+        <div class="glass-card p-3 mb-4 text-center border-danger" style="max-width: 450px; margin: 0 auto;">
+            <label class="form-label text-warning fw-bold mb-1">
+                🎯 Potencia de Lanzamiento: <span class="throwForceValue text-white">25</span>
+            </label>
+            <input type="range" class="form-range throwForceSlider" min="10" max="50" value="25" step="1">
+        </div>
+    </div>
+
+    <button id="btnStartLevel3" class="btn btn-start btn-lg px-5 py-3 fw-bold shadow-lg">
+        ¡INICIAR NIVEL 3!
+    </button>
+</div>
+
+<!-- HUD DEL JUEGO -->
+<div id="gameHUD" class="d-none">
+    <div id="healthContainer" class="hud-box">
+        <span class="hud-label">VIDA</span>
+        <div class="progress bg-secondary" style="height: 20px; width: 180px;">
+            <div id="healthBar" class="progress-bar bg-danger fw-bold" role="progressbar" style="width: 100%;">100%
+            </div>
+        </div>
+    </div>
+
+    <div id="objectiveContainer" class="hud-box border-warning">
+        <span id="objectiveLabel" class="hud-label text-warning">NIVEL 1: OBJETIVO</span>
+        <span id="objectiveText" class="badge bg-warning text-dark fs-6">Elimina Zombies: 0 / 10</span>
+    </div>
+
+    <div id="ammoContainer" class="hud-box">
+        <span class="hud-label">JITOMATES</span>
+        <span id="ammoCount" class="badge bg-warning text-dark fs-5">10 / 10</span>
+    </div>
+
+    <div id="scoreContainer" class="hud-box">
+        <span class="hud-label">ZOMBIES DERROTADOS</span>
+        <span id="scoreCount" class="badge bg-danger fs-5">0</span>
+    </div>
+
+    <div id="timerContainer" class="hud-box">
+        <span class="hud-label">TIEMPO SOBREVIVIDO</span>
+        <span id="timerCount" class="badge bg-info text-dark fs-5">00:00</span>
+    </div>
+</div>
+
+<!-- PANTALLA GAME OVER / VICTORIA -->
+<div id="gameOverScreen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
+    <h1 id="endTitle" class="game-over-title display-1 fw-bold text-danger mb-2">GAME OVER</h1>
+    <p id="endMessage" class="lead text-light mb-4">Los zombies devoraron tus cosechas y tu cerebro.</p>
+
+    <div class="glass-card p-4 mb-4 border-danger text-center" style="min-width: 300px;">
+        <h5 class="text-danger mb-3 border-bottom border-secondary pb-2">Estadísticas Finales</h5>
+        <div class="d-flex justify-content-between mb-2 fs-6">
+            <span class="text-secondary">Zombies Derrotados Totales:</span>
+            <span id="finalScore" class="fw-bold text-warning">0</span>
+        </div>
+        <div class="d-flex justify-content-between fs-6">
+            <span class="text-secondary">Tiempo Sobrevivido:</span>
+            <span id="finalTime" class="fw-bold text-info">00:00</span>
+        </div>
+    </div>
+
+    <button id="btnRestartGame" class="btn btn-danger btn-lg px-5 py-3 fw-bold btn-restart shadow-lg">
+        🔄 JUGAR DE NUEVO
+    </button>
+</div>
+
+<script type="module" src="./assets/js/main.js"></script>
