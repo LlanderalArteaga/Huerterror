@@ -10,8 +10,10 @@ export const gameState = {
     score: 0,            // Score global
     zombiesKilled: 0,    // Nivel 1
     targetZombies: 10,
-    keysFound: 0,        // Nivel 2
+    keysFound: 0,        // Nivel 2 y 3
     targetKeys: 3,
+    tombDelivered: false, // Nivel 3
+    openedGateIndex: -1, // Nivel 3
     doorOpen: false,
     time: 0
 };
@@ -38,6 +40,8 @@ export function startGame() {
     gameState.targetZombies = 10;
     gameState.keysFound = 0;
     gameState.targetKeys = 3;
+    gameState.tombDelivered = false;
+    gameState.openedGateIndex = -1;
     gameState.doorOpen = false;
     gameState.time = 0;
 
@@ -61,6 +65,8 @@ export function startLevel2Game() {
     gameState.doorOpen = false;
     gameState.keysFound = 0;
     gameState.targetKeys = 3;
+    gameState.tombDelivered = false;
+    gameState.openedGateIndex = -1;
     gameState.time = 0;
 
     if (playerMesh) {
@@ -81,6 +87,10 @@ export function startLevel3Game() {
     gameState.health = 100;
     gameState.ammo = 10;
     gameState.doorOpen = false;
+    gameState.keysFound = 0;
+    gameState.targetKeys = 5; // Requerimos 5 llaves para el Nivel 3
+    gameState.tombDelivered = false;
+    gameState.openedGateIndex = -1;
     gameState.time = 0;
 
     if (playerMesh) {
@@ -106,11 +116,16 @@ export function onZombieKilled() {
 }
 
 export function onKeyCollected() {
-    if (!gameState.isPlaying || gameState.level !== 2) return;
+    if (!gameState.isPlaying) return;
 
-    gameState.keysFound += 1;
-    if (gameState.keysFound >= gameState.targetKeys) {
-        gameState.doorOpen = true;
+    if (gameState.level === 2) {
+        gameState.keysFound += 1;
+        if (gameState.keysFound >= gameState.targetKeys) {
+            gameState.doorOpen = true;
+        }
+    } else if (gameState.level === 3) {
+        gameState.keysFound += 1;
+        // En Nivel 3 las llaves no abren las puertas directamente, se entregan al ataúd
     }
 
     updateHUD();

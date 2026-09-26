@@ -4,11 +4,11 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { playerMesh } from './player.js';
 import { gameState, onKeyCollected } from './game.js';
 import { showInteractionPrompt, hideInteractionPrompt } from './ui.js';
-import { staticColliders } from './physics.js'; // <-- Importado para físicas reales
+import { staticColliders } from './physics.js';
 
 export const activeChests = [];
 const structureBlocks = [];
-const structureColliders = []; // Guarda las colisiones de los bloques para eliminarlas al limpiar
+const structureColliders = [];
 
 let closedChestModel = null;
 let openChestModel = null;
@@ -18,29 +18,22 @@ let stoneBlockModel = null;
 
 const CHEST_SCALE = 0.22;
 
-// Ubicaciones de los 3 cofres
-const CHEST_LOCATIONS = [
-    // Cofre 1: A la vista en los cultivos
-    {
-        pos: new THREE.Vector3(5.0, 0.0, 8.0),
-        rotY: 0,
-        type: 'visible'
-    },
-    // Cofre 2: Escondido detrás del granero rodeado de cajas de madera
-    {
-        pos: new THREE.Vector3(20.5, 0.0, -18.5),
-        rotY: -Math.PI / 2,
-        type: 'wood_shelter'
-    },
-    // Cofre 3: Escondido en la esquina lejana dentro de un pequeño refugio de piedra
-    {
-        pos: new THREE.Vector3(-21.5, 0.0, -21.5),
-        rotY: Math.PI / 4,
-        type: 'stone_bunker'
-    }
+// 5 Posiciones para el Nivel 3
+const CHEST_LOCATIONS_L3 = [
+    { pos: new THREE.Vector3(5.0, 0.0, 8.0), rotY: 0, type: 'visible' },
+    { pos: new THREE.Vector3(20.5, 0.0, -18.5), rotY: -Math.PI / 2, type: 'wood_shelter' },
+    { pos: new THREE.Vector3(-21.5, 0.0, -21.5), rotY: Math.PI / 4, type: 'stone_bunker' },
+    { pos: new THREE.Vector3(-17.5, 0.0, 15.0), rotY: Math.PI / 3, type: 'wood_shelter' },
+    { pos: new THREE.Vector3(18.0, 0.0, 18.0), rotY: -Math.PI / 4, type: 'stone_bunker' }
 ];
 
-// Crea la malla 3D de la llave giratoria mística
+// 3 Posiciones para el Nivel 2
+const CHEST_LOCATIONS_L2 = [
+    { pos: new THREE.Vector3(5.0, 0.0, 8.0), rotY: 0, type: 'visible' },
+    { pos: new THREE.Vector3(20.5, 0.0, -18.5), rotY: -Math.PI / 2, type: 'wood_shelter' },
+    { pos: new THREE.Vector3(-21.5, 0.0, -21.5), rotY: Math.PI / 4, type: 'stone_bunker' }
+];
+
 function createKeyMesh() {
     const keyGroup = new THREE.Group();
 
@@ -76,7 +69,6 @@ function createKeyMesh() {
 export function initChests(scene) {
     const loader = new GLTFLoader();
 
-    // Carga de modelos de cofres
     loader.load('./assets/map/envirioment/Chest_Closed.gltf', (gltf) => {
         closedChestModel = gltf.scene;
         closedChestModel.scale.set(CHEST_SCALE, CHEST_SCALE, CHEST_SCALE);
@@ -87,21 +79,11 @@ export function initChests(scene) {
         openChestModel.scale.set(CHEST_SCALE, CHEST_SCALE, CHEST_SCALE);
     }, undefined, (err) => console.error("Error al cargar Chest_Open.gltf:", err));
 
-    // Carga de bloques decorativos para los escondites
-    loader.load('./assets/map/blocks/Block_Crate.gltf', (gltf) => {
-        crateBlockModel = gltf.scene;
-    }, undefined, () => {});
-
-    loader.load('./assets/map/blocks/Block_WoodPlanks.gltf', (gltf) => {
-        woodBlockModel = gltf.scene;
-    }, undefined, () => {});
-
-    loader.load('./assets/map/blocks/Block_Stone.gltf', (gltf) => {
-        stoneBlockModel = gltf.scene;
-    }, undefined, () => {});
+    loader.load('./assets/map/blocks/Block_Crate.gltf', (gltf) => { crateBlockModel = gltf.scene; });
+    loader.load('./assets/map/blocks/Block_WoodPlanks.gltf', (gltf) => { woodBlockModel = gltf.scene; });
+    loader.load('./assets/map/blocks/Block_Stone.gltf', (gltf) => { stoneBlockModel = gltf.scene; });
 }
 
-// Construye estructuras de bloques alrededor de los cofres difíciles y les asigna físicas
 function buildChestStructure(scene, loc) {
     let offsets = [];
     let baseModel = null;
@@ -110,7 +92,6 @@ function buildChestStructure(scene, loc) {
         baseModel = crateBlockModel || woodBlockModel;
         if (!baseModel) return;
 
-        // Pared de cajas apiladas tapando la vista frontal
         offsets = [
             { x: -0.8, y: 0, z: 0.6 },
             { x: 0, y: 0, z: 0.8 },
@@ -123,7 +104,6 @@ function buildChestStructure(scene, loc) {
         baseModel = stoneBlockModel || woodBlockModel;
         if (!baseModel) return;
 
-        // Estructura en "U" rodeando el cofre en la esquina
         offsets = [
             { x: 0.8, y: 0, z: 0 },
             { x: 0.8, y: 0.6, z: 0 },
@@ -142,7 +122,6 @@ function buildChestStructure(scene, loc) {
         scene.add(block);
         structureBlocks.push(block);
 
-        // Generar caja de colisión física (Box3) para detener al jugador, zombies y jitomates
         block.updateMatrixWorld(true);
         const colliderBox = new THREE.Box3().setFromObject(block);
         
@@ -154,8 +133,9 @@ function buildChestStructure(scene, loc) {
 export function spawnChests(scene) {
     clearChests(scene);
 
-    CHEST_LOCATIONS.forEach((loc, index) => {
-        // Construye el escondite visual y físico si aplica
+    const locations = (gameState.level === 3) ? CHEST_LOCATIONS_L3 : CHEST_LOCATIONS_L2;
+
+    locations.forEach((loc, index) => {
         buildChestStructure(scene, loc);
 
         let closedMesh = closedChestModel ? SkeletonUtils.clone(closedChestModel) : createFallbackChest(0x8b4513);
@@ -171,7 +151,6 @@ export function spawnChests(scene) {
         openMesh.visible = false;
         scene.add(openMesh);
 
-        // Luz dorada suave dentro del cofre
         const light = new THREE.PointLight(0xff8800, 1.0, 2.5);
         light.position.copy(loc.pos).add(new THREE.Vector3(0, 0.4, 0));
         scene.add(light);
@@ -197,7 +176,6 @@ function createFallbackChest(colorHex) {
 }
 
 export function clearChests(scene) {
-    // Remover cofres y luces
     activeChests.forEach((c) => {
         if (c.closedMesh) scene.remove(c.closedMesh);
         if (c.openMesh) scene.remove(c.openMesh);
@@ -206,11 +184,9 @@ export function clearChests(scene) {
     });
     activeChests.length = 0;
 
-    // Remover bloques visuales
     structureBlocks.forEach((b) => scene.remove(b));
     structureBlocks.length = 0;
 
-    // Remover cajas de colisión de las físicas globales
     structureColliders.forEach((box) => {
         const index = staticColliders.indexOf(box);
         if (index !== -1) {
@@ -221,12 +197,11 @@ export function clearChests(scene) {
 }
 
 export function updateChests(delta, scene) {
-    if (!playerMesh || !gameState.isPlaying || gameState.level !== 2) return;
+    if (!playerMesh || !gameState.isPlaying || (gameState.level !== 2 && gameState.level !== 3)) return;
 
     let isNearChest = false;
 
     activeChests.forEach((c) => {
-        // Animación de la llave mística al abrir el cofre
         if (c.animatingKey) {
             c.keyTimer += delta;
 
@@ -255,14 +230,13 @@ export function updateChests(delta, scene) {
 
     if (isNearChest && !gameState.doorOpen) {
         showInteractionPrompt('[E] Abrir Cofre Místico 🔑');
-    } else if (gameState.level === 2 && !gameState.doorOpen) {
+    } else if (!gameState.doorOpen) {
         hideInteractionPrompt();
     }
 }
 
-// Abrir cofre con la tecla 'E'
 window.addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase() === 'e' && playerMesh && gameState.isPlaying && gameState.level === 2) {
+    if (e.key.toLowerCase() === 'e' && playerMesh && gameState.isPlaying && (gameState.level === 2 || gameState.level === 3)) {
         activeChests.forEach((c) => {
             if (!c.opened && playerMesh.position.distanceTo(c.pos) < 2.2) {
                 c.opened = true;

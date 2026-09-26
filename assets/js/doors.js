@@ -4,48 +4,43 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { gameState, triggerLevel2Transition, triggerLevel3Transition } from './game.js';
 import { playerMesh } from './player.js';
 import { staticColliders } from './physics.js';
+import { showVictoryScreen } from './ui.js';
 
 const gateLights = [];
 const gatePairs = [];
 
-// Posiciones alineadas exactamente con las vallas (x=±25, z=±25, camino E-O en z=-1)
-const GATE_POSITIONS = [
-    { x: 0, z: -25.0, rotY: 0 },             // Salida Norte
-    { x: 0, z: 25.0, rotY: Math.PI },        // Salida Sur
-    { x: -25.0, z: -1.0, rotY: Math.PI / 2 }, // Salida Oeste
-    { x: 25.0, z: -1.0, rotY: -Math.PI / 2 }  // Salida Este
+// Posiciones alineadas exactamente con las vallas
+export const GATE_POSITIONS = [
+    { x: 0, z: -25.0, rotY: 0 },              // Salida Norte (0)
+    { x: 0, z: 25.0, rotY: Math.PI },         // Salida Sur (1)
+    { x: -25.0, z: -1.0, rotY: Math.PI / 2 }, // Salida Oeste (2)
+    { x: 25.0, z: -1.0, rotY: -Math.PI / 2 }   // Salida Este (3)
 ];
 
-// Crea una instancia del modelo ajustando automáticamente escalas gigantes o desfasadas
 function createGateInstance(modelScene, pos) {
     const gate = SkeletonUtils.clone(modelScene);
 
-    // 1. Calcular tamaño nativo en 3D
     const nativeBox = new THREE.Box3().setFromObject(gate);
     const nativeHeight = nativeBox.max.y - nativeBox.min.y;
 
-    // 2. Normalizar la escala si el modelo es gigante (> 50 unidades)
     let scaleFactor = 1.35;
     if (nativeHeight > 50) {
-        // Reducir proporcionalmente para que mida ~3.8 metros de alto
         scaleFactor = 3.8 / nativeHeight;
     }
 
     gate.scale.set(scaleFactor, scaleFactor, scaleFactor);
     gate.rotation.y = pos.rotY;
 
-    // 3. Ajustar posición Y para que la base toque exactamente el suelo
     gate.updateMatrixWorld(true);
     const scaledBox = new THREE.Box3().setFromObject(gate);
     gate.position.set(pos.x, -scaledBox.min.y, pos.z);
 
-    // 4. Restaurar sombras y materiales visibles para la escena nocturna
     gate.traverse((child) => {
         child.visible = true;
         if (child.isMesh) {
             child.castShadow = true;
             child.receiveShadow = true;
-            child.frustumCulled = false; // Evita que Three.js lo descarte
+            child.frustumCulled = false;
 
             if (!child.material || (child.material.color && child.material.color.r < 0.05)) {
                 child.material = new THREE.MeshStandardMaterial({
@@ -68,6 +63,27 @@ function createGateInstance(modelScene, pos) {
     });
 
     return gate;
+}
+
+// Abre únicamente la puerta elegida por el Esqueleto en el Nivel 3
+export function openSpecificGate(index) {
+    if (index >= 0 && index < gatePairs.length) {
+        const pair = gatePairs[index];
+        if (pair.closed) pair.closed.visible = false;
+        if (pair.open) {
+            pair.open.visible = true;
+            pair.open.traverse((c) => c.visible = true);
+        }
+
+        if (pair.collider) {
+            const idx = staticColliders.indexOf(pair.collider);
+            if (idx !== -1) staticColliders.splice(idx, 1);
+        }
+
+        if (gateLights[index]) {
+            gateLights[index].intensity = 5.0;
+        }
+    }
 }
 
 export function initGates(scene) {
@@ -94,16 +110,13 @@ export function initGates(scene) {
         if (!closedModel || !openModel) return;
 
         GATE_POSITIONS.forEach((pos) => {
-            // Instancia Puerta Cerrada
             const closedGate = createGateInstance(closedModel, pos);
             closedGate.visible = true;
             scene.add(closedGate);
 
-            // Generar caja de colisión para la puerta cerrada
             closedGate.updateMatrixWorld(true);
             const colliderBox = new THREE.Box3().setFromObject(closedGate);
 
-            // Instancia Puerta Abierta (Oculta inicialmente)
             const openGate = createGateInstance(openModel, pos);
             openGate.visible = false;
             scene.add(openGate);
@@ -114,7 +127,6 @@ export function initGates(scene) {
                 collider: colliderBox
             });
 
-            // Luz mística verde de salida
             const greenLight = new THREE.PointLight(0x00ff66, 0, 10);
             greenLight.position.set(pos.x, 3.0, pos.z);
             scene.add(greenLight);
@@ -127,44 +139,59 @@ export function updateGates(delta) {
     if (!playerMesh || !gameState.isPlaying) return;
 
     if (gameState.doorOpen) {
-        // Intercambiar visibilidad al modelo abierto y quitar físicas
-        gatePairs.forEach((pair) => {
-            if (pair.closed && pair.closed.visible) {
-                pair.closed.visible = false;
-            }
-            if (pair.open && !pair.open.visible) {
-                pair.open.visible = true;
-                pair.open.traverse((c) => c.visible = true);
+        if (gameState.level === 3 && gameState.openedGateIndex !== undefined && gameState.openedGateIndex !== -1) {
+            // NIVEL 3: Abrir solo la puerta seleccionada por el Esqueleto
+            openSpecificGate(gameState.openedGateIndex);
+
+            const time = Date.now() * 0.005;
+            if (gateLights[gameState.openedGateIndex]) {
+                gateLights[gameState.openedGateIndex].intensity = 4.0 + Math.sin(time) * 2.0;
             }
 
-            // Remover colisionador si la puerta está abierta
-            if (pair.collider) {
-                const index = staticColliders.indexOf(pair.collider);
-                if (index !== -1) {
-                    staticColliders.splice(index, 1);
-                }
-            }
-        });
-
-        // Parpadeo de luz verde mística
-        const time = Date.now() * 0.005;
-        gateLights.forEach((light) => {
-            light.intensity = 4.0 + Math.sin(time) * 2.0;
-        });
-
-        // Transición de nivel al cruzar el portal
-        GATE_POSITIONS.forEach((pos) => {
-            const dist = playerMesh.position.distanceTo(new THREE.Vector3(pos.x, 0, pos.z));
+            // Detectar si el jugador cruza la puerta específica para ganar
+            const targetPos = GATE_POSITIONS[gameState.openedGateIndex];
+            const dist = playerMesh.position.distanceTo(new THREE.Vector3(targetPos.x, 0, targetPos.z));
             if (dist < 2.5) {
-                if (gameState.level === 1) {
-                    triggerLevel2Transition();
-                } else if (gameState.level === 2) {
-                    triggerLevel3Transition(); // <-- Cambiado: Pasa al Nivel 3
-                }
+                gameState.isPlaying = false; // Detiene completamente el juego
+                showVictoryScreen();
             }
-        });
+        } else {
+            // NIVEL 1 y NIVEL 2: Se abren todas las puertas
+            gatePairs.forEach((pair) => {
+                if (pair.closed && pair.closed.visible) {
+                    pair.closed.visible = false;
+                }
+                if (pair.open && !pair.open.visible) {
+                    pair.open.visible = true;
+                    pair.open.traverse((c) => c.visible = true);
+                }
+
+                if (pair.collider) {
+                    const index = staticColliders.indexOf(pair.collider);
+                    if (index !== -1) {
+                        staticColliders.splice(index, 1);
+                    }
+                }
+            });
+
+            const time = Date.now() * 0.005;
+            gateLights.forEach((light) => {
+                light.intensity = 4.0 + Math.sin(time) * 2.0;
+            });
+
+            GATE_POSITIONS.forEach((pos) => {
+                const dist = playerMesh.position.distanceTo(new THREE.Vector3(pos.x, 0, pos.z));
+                if (dist < 2.5) {
+                    if (gameState.level === 1) {
+                        triggerLevel2Transition();
+                    } else if (gameState.level === 2) {
+                        triggerLevel3Transition();
+                    }
+                }
+            });
+        }
     } else {
-        // Mantener modelo cerrado y activar sus físicas
+        // Puertas cerradas y con físicas
         gatePairs.forEach((pair) => {
             if (pair.closed && !pair.closed.visible) {
                 pair.closed.visible = true;
@@ -173,7 +200,6 @@ export function updateGates(delta) {
                 pair.open.visible = false;
             }
 
-            // Agregar colisionador si la puerta está cerrada
             if (pair.collider && !staticColliders.includes(pair.collider)) {
                 staticColliders.push(pair.collider);
             }

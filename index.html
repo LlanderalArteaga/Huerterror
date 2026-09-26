@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +17,7 @@
     }
     </script>
 </head>
+
 <body>
     <canvas id="gameCanvas"></canvas>
 
@@ -28,10 +30,12 @@
     </div>
 
     <!-- PANTALLA INICIAL (NIVEL 1) -->
-    <div id="startScreen" class="overlay-screen active d-flex flex-column justify-content-center align-items-center p-3">
+    <div id="startScreen"
+        class="overlay-screen active d-flex flex-column justify-content-center align-items-center p-3">
         <div class="text-center mb-3">
             <h1 class="game-title display-1 fw-bold text-uppercase">EL HUERTERROR</h1>
-            <p class="subtitle lead text-warning fw-semibold">🎃 Sobrevive a la noche zombie defendiendo la granja 🎃</p>
+            <p class="subtitle lead text-warning fw-semibold">🎃 Sobrevive a la noche zombie defendiendo la granja 🎃
+            </p>
         </div>
 
         <div class="container" style="max-width: 850px;">
@@ -75,16 +79,20 @@
                         </h5>
                         <ol class="small text-light ps-3 mb-0 instructions-list">
                             <li class="mb-2">
-                                <strong class="text-warning">Lanza Jitomates:</strong> Elimina a los zombies antes de que te acorralen.
+                                <strong class="text-warning">Lanza Jitomates:</strong> Elimina a los zombies antes de
+                                que te acorralen.
                             </li>
                             <li class="mb-2">
-                                <strong class="text-warning">Recarga Munición:</strong> Acércate a los cultivos brillosos de jitomate y presiona <kbd>E</kbd> para cosechar.
+                                <strong class="text-warning">Recarga Munición:</strong> Acércate a los cultivos
+                                brillosos de jitomate y presiona <kbd>E</kbd> para cosechar.
                             </li>
                             <li class="mb-2">
-                                <strong class="text-warning">Cumple el Objetivo:</strong> Derrota la cantidad requerida de zombies para activar las <span class="text-success fw-bold">Puertas Místicas</span>.
+                                <strong class="text-warning">Cumple el Objetivo:</strong> Derrota la cantidad requerida
+                                de zombies para activar las <span class="text-success fw-bold">Puertas Místicas</span>.
                             </li>
                             <li>
-                                <strong class="text-warning">Escapa:</strong> Atraviesa los portales verdes brillantes para avanzar de nivel.
+                                <strong class="text-warning">Escapa:</strong> Atraviesa los portales verdes brillantes
+                                para avanzar de nivel.
                             </li>
                         </ol>
                     </div>
@@ -101,7 +109,8 @@
     <div id="level2Screen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
         <div class="text-center mb-3">
             <h1 class="game-title display-2 fw-bold text-uppercase text-warning">NIVEL 2: LA HORDA Y LAS LLAVES</h1>
-            <p class="subtitle lead text-light fw-semibold">🔑 Encuentra las 3 llaves místicas para abrir el portal final 🔑</p>
+            <p class="subtitle lead text-light fw-semibold">🔑 Encuentra las 3 llaves místicas para abrir el portal
+                final 🔑</p>
         </div>
 
         <div class="container" style="max-width: 650px;">
@@ -111,7 +120,8 @@
                 </h5>
                 <ul class="text-light small mb-0 instructions-list ps-3">
                     <li class="mb-2">
-                        Explora la granja infestada y localiza las <strong class="text-warning">3 Llaves Místicas Brillantes</strong>.
+                        Explora la granja infestada y localiza las <strong class="text-warning">3 Llaves Místicas
+                            Brillantes</strong>.
                     </li>
                     <li class="mb-2">
                         Acércate a cada llave y presiona <kbd>E</kbd> para recogerla.
@@ -135,7 +145,8 @@
     <div id="level3Screen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
         <div class="text-center mb-3">
             <h1 class="game-title display-2 fw-bold text-uppercase text-danger">NIVEL 3: LA BATALLA FINAL</h1>
-            <p class="subtitle lead text-light fw-semibold">🔥 Sobrevive al ataque masivo para lograr la victoria absoluta 🔥</p>
+            <p class="subtitle lead text-light fw-semibold">💀 Despierta al Esqueleto Guardián para romper el sello
+                final 💀</p>
         </div>
 
         <div class="container" style="max-width: 650px;">
@@ -145,13 +156,20 @@
                 </h5>
                 <ul class="text-light small mb-0 instructions-list ps-3">
                     <li class="mb-2">
-                        Has desbloqueado el paso final, pero la <strong class="text-warning">Horda Suprema</strong> te rodea.
+                        Explora el huerto y localiza los <strong class="text-warning">5 Cofres Místicos</strong>
+                        escondidos entre las estructuras.
                     </li>
                     <li class="mb-2">
-                        Utiliza los cultivos para no quedarte sin jitomates y mantén la distancia.
+                        ⚠️ <strong class="text-danger">Atención:</strong> La horda de zombies está en <strong
+                            class="text-danger">furia permanente</strong> (mayor velocidad y daño).
+                    </li>
+                    <li class="mb-2">
+                        Al juntar las 5 llaves, ve al <strong class="text-warning">Ataúd Místico</strong> en el centro y
+                        presiona <kbd>E</kbd> para entregar las llaves.
                     </li>
                     <li>
-                        Resiste y elimina a los enemigos restantes para completar la evacuación.
+                        El <strong class="text-info">Esqueleto Guardián</strong> caminará hacia una de las 4 salidas al
+                        azar para abrirtela. <strong class="text-success">¡Escapa por esa puerta!</strong>
                     </li>
                 </ul>
             </div>
@@ -167,7 +185,8 @@
         <div id="healthContainer" class="hud-box">
             <span class="hud-label">VIDA</span>
             <div class="progress bg-secondary" style="height: 20px; width: 180px;">
-                <div id="healthBar" class="progress-bar bg-danger fw-bold" role="progressbar" style="width: 100%;">100%</div>
+                <div id="healthBar" class="progress-bar bg-danger fw-bold" role="progressbar" style="width: 100%;">100%
+                </div>
             </div>
         </div>
 
@@ -196,7 +215,7 @@
     <div id="gameOverScreen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
         <h1 id="endTitle" class="game-over-title display-1 fw-bold text-danger mb-2">GAME OVER</h1>
         <p id="endMessage" class="lead text-light mb-4">Los zombies devoraron tus cosechas y tu cerebro.</p>
-        
+
         <div class="glass-card p-4 mb-4 border-danger text-center" style="min-width: 300px;">
             <h5 class="text-danger mb-3 border-bottom border-secondary pb-2">Estadísticas Finales</h5>
             <div class="d-flex justify-content-between mb-2 fs-6">
@@ -216,4 +235,5 @@
 
     <script type="module" src="./assets/js/main.js"></script>
 </body>
+
 </html>

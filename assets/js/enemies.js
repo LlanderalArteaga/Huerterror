@@ -6,7 +6,7 @@ import { addDynamicBody, checkCollision } from './physics.js';
 import { activeTomatoes, createTomatoExplosion } from './tomato.js';
 import { playerMesh, MAP_LIMITS } from './player.js';
 import { gameState, onZombieKilled } from './game.js';
-import { updateHUD,triggerDamageFlash } from './ui.js';
+import { updateHUD, triggerDamageFlash } from './ui.js';
 
 export const zombies = [];
 let zombieModel = null;
@@ -117,7 +117,7 @@ export function spawnZombie(scene) {
     }
 
     // Velocidad incrementada si la horda está enfurecida (puertas abiertas en Nivel 2)
-    const isEnraged = (gameState.level === 2 && gameState.doorOpen);
+    const isEnraged = (gameState.level === 3) || (gameState.level === 2 && gameState.doorOpen);
     const initialSpeed = isEnraged ? 3.5 : 1.8;
 
     zombies.push({ mesh: zombie, speed: initialSpeed, mixer });
@@ -131,7 +131,7 @@ export function updateEnemies(delta, scene) {
     }
 
     // Si están abiertas las puertas en el Nivel 2, los zombies entran en modo Furia
-    const isEnraged = (gameState.level === 2 && gameState.doorOpen);
+    const isEnraged = (gameState.level === 3) || (gameState.level === 2 && gameState.doorOpen);
     const currentSpeed = isEnraged ? 3.5 : 1.8;
     const currentDamage = isEnraged ? 28 : 12;
 

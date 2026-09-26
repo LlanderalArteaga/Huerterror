@@ -167,13 +167,28 @@ export function updateHUD() {
             }
         } else if (gameState.level === 3) {
             if (objectiveLabel) objectiveLabel.textContent = "NIVEL 3: OBJETIVO";
-            objectiveText.textContent = 'Sobrevive a la Horda Suprema 🔥';
-            objectiveText.className = 'badge bg-danger text-white fs-6';
+
+            if (!gameState.tombDelivered) {
+                if (gameState.keysFound < gameState.targetKeys) {
+                    objectiveText.textContent = 'Encuentra Llaves: ' + gameState.keysFound + ' / ' + gameState.targetKeys + ' 🔑';
+                    objectiveText.className = 'badge bg-danger text-white fs-6';
+                } else {
+                    objectiveText.textContent = '¡Llaves listas! Llévalas al Ataúd ⚰️';
+                    objectiveText.className = 'badge bg-warning text-dark fs-6';
+                }
+            } else if (!gameState.doorOpen) {
+                objectiveText.textContent = 'Sigue al Esqueleto a la Salida 💀';
+                objectiveText.className = 'badge bg-info text-dark fs-6';
+            } else {
+                objectiveText.textContent = '¡Portal Abierto! Escapa por la puerta 🚪';
+                objectiveText.className = 'badge bg-success text-white fs-6';
+            }
         }
     }
 }
 
 export function showGameOverScreen(title, message) {
+    gameState.isPlaying = false;
     setCrosshairVisible(false);
     hideInteractionPrompt();
 
@@ -206,6 +221,7 @@ export function showGameOverScreen(title, message) {
 }
 
 export function showVictoryScreen() {
+    gameState.isPlaying = false; // Garantiza la congelación del bucle del juego
     setCrosshairVisible(false);
     hideInteractionPrompt();
 
@@ -223,7 +239,7 @@ export function showVictoryScreen() {
         endTitle.className = "game-title display-1 fw-bold text-success mb-2";
     }
     if (endMessage) {
-        endMessage.textContent = "Lograste recolectar las llaves y sobrevivir a la noche zombie.";
+        endMessage.textContent = "Lograste recolectar las llaves, despertar al Esqueleto y sobrevivir a la noche zombie.";
     }
 
     if (finalScore) finalScore.textContent = gameState.score;
