@@ -84,6 +84,9 @@ export function initEnemiesAndProps(scene) {
     }
 } */
 
+
+let damageFlashCooldown = 0;
+
 export function spawnZombie(scene) {
     if (!zombieModel || !playerMesh) return;
 
@@ -101,7 +104,6 @@ export function spawnZombie(scene) {
     let spawnX = playerMesh.position.x + Math.cos(angle) * radius;
     let spawnZ = playerMesh.position.z + Math.sin(angle) * radius;
 
-    // Delimitar estrictamente dentro del cercado de las vallas
     spawnX = Math.max(FENCE_LIMITS.minX, Math.min(FENCE_LIMITS.maxX, spawnX));
     spawnZ = Math.max(FENCE_LIMITS.minZ, Math.min(FENCE_LIMITS.maxZ, spawnZ));
 
@@ -114,19 +116,28 @@ export function spawnZombie(scene) {
         action.play();
     }
 
-    zombies.push({ mesh: zombie, speed: 1.8, mixer });
+    // Velocidad incrementada si la horda está enfurecida (puertas abiertas en Nivel 2)
+    const isEnraged = (gameState.level === 2 && gameState.doorOpen);
+    const initialSpeed = isEnraged ? 3.5 : 1.8;
+
+    zombies.push({ mesh: zombie, speed: initialSpeed, mixer });
 }
-let damageFlashCooldown = 0;
+
 export function updateEnemies(delta, scene) {
     if (!playerMesh) return;
 
-    // Reducir temporizador del destello de daño
     if (damageFlashCooldown > 0) {
         damageFlashCooldown -= delta;
     }
 
+    // Si están abiertas las puertas en el Nivel 2, los zombies entran en modo Furia
+    const isEnraged = (gameState.level === 2 && gameState.doorOpen);
+    const currentSpeed = isEnraged ? 3.5 : 1.8;
+    const currentDamage = isEnraged ? 28 : 12;
+
     for (let i = zombies.length - 1; i >= 0; i--) {
         const z = zombies[i];
+        z.speed = currentSpeed; // Aplica velocidad de furia a todos los zombies existentes
 
         if (z.mixer) z.mixer.update(delta);
 
@@ -157,7 +168,7 @@ export function updateEnemies(delta, scene) {
             z.mesh.position.z = Math.max(MAP_LIMITS.minZ, Math.min(MAP_LIMITS.maxZ, z.mesh.position.z));
         }
 
-        // --- Impacto de tomates contra zombies ---
+        // --- Impacto de tomates ---
         const zombieCenter = z.mesh.position.clone().add(new THREE.Vector3(0, 0.8, 0));
         let zombieHit = false;
 
@@ -181,14 +192,14 @@ export function updateEnemies(delta, scene) {
 
         if (zombieHit) continue;
 
-        // Daño al jugador y activación del flashazo rojo
+        // Daño al jugador (Daño incrementado en fase de escape)
         if (distToPlayer <= ATTACK_RANGE) {
-            gameState.health -= 12 * delta;
+            gameState.health -= currentDamage * delta;
             updateHUD();
 
             if (damageFlashCooldown <= 0) {
                 triggerDamageFlash();
-                damageFlashCooldown = 0.3; // Genera un pulso rojo cada 0.3 segundos mientras recibes ataque
+                damageFlashCooldown = 0.3;
             }
         }
     }

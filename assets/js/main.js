@@ -6,11 +6,13 @@ import { initTomatoProps, updateTomatoes } from './tomato.js';
 import { initEnemiesAndProps, updateEnemies, spawnZombie } from './enemies.js';
 import { initGameLogic, updateGame, gameState } from './game.js';
 import { initAnimals, updateAnimals } from './animals.js';
-import { initGates, updateGates } from './doors.js'; // <-- Importar puertas
+import { initGates, updateGates } from './doors.js';
 import { initUI } from './ui.js';
+import { initChests, spawnChests, updateChests, clearChests } from './chests.js';
 
 let scene, camera, renderer, clock;
 let spawnTimer = 0;
+let level2ChestsSpawned = false;
 
 function init() {
     scene = new THREE.Scene();
@@ -37,7 +39,8 @@ function init() {
     initTomatoProps(scene);
     initEnemiesAndProps(scene);
     initAnimals(scene);
-    initGates(scene); // <-- Inicializar arcos de entrada
+    initGates(scene);
+    initChests(scene); // <-- Inicializa precarga de modelos de cofres
     initUI();
 
     window.addEventListener('resize', onWindowResize);
@@ -57,16 +60,29 @@ function animate() {
     const delta = clock.getDelta();
 
     if (gameState.isPlaying) {
+        // Control de spawn/limpieza de cofres
+        if (gameState.level === 2 && !level2ChestsSpawned) {
+            spawnChests(scene);
+            level2ChestsSpawned = true;
+        } else if (gameState.level === 1 && level2ChestsSpawned) {
+            clearChests(scene);
+            level2ChestsSpawned = false;
+        }
+
         updatePhysics();
         updatePlayer(delta, camera);
         updateTomatoes(delta, scene);
         updateEnemies(delta, scene);
         updateAnimals(delta);
-        updateGates(delta); // <-- Actualizar estado/luces de puertas
+        updateGates(delta);
+        updateChests(delta, scene); // <-- Actualiza interacción de cofres
         updateGame(delta, scene);
 
+        // Frecuencia de aparición de zombies (más rápida cuando la horda se enfurece)
+        const spawnInterval = (gameState.level === 2 && gameState.doorOpen) ? 1.5 : (gameState.level === 2 ? 2.5 : 4.0);
+
         spawnTimer += delta;
-        if (spawnTimer >= 4.0) {
+        if (spawnTimer >= spawnInterval) {
             spawnZombie(scene);
             spawnTimer = 0;
         }

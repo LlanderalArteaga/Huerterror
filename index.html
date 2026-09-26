@@ -27,6 +27,7 @@
         <span id="promptText" class="badge bg-warning text-dark fs-6 shadow">[E] Interactuar</span>
     </div>
 
+    <!-- PANTALLA INICIAL (NIVEL 1) -->
     <div id="startScreen" class="overlay-screen active d-flex flex-column justify-content-center align-items-center p-3">
         <div class="text-center mb-3">
             <h1 class="game-title display-1 fw-bold text-uppercase">EL HUERTERROR</h1>
@@ -96,6 +97,72 @@
         </button>
     </div>
 
+    <!-- PANTALLA TRANSICIÓN A NIVEL 2 -->
+    <div id="level2Screen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
+        <div class="text-center mb-3">
+            <h1 class="game-title display-2 fw-bold text-uppercase text-warning">NIVEL 2: LA HORDA Y LAS LLAVES</h1>
+            <p class="subtitle lead text-light fw-semibold">🔑 Encuentra las 3 llaves místicas para abrir el portal final 🔑</p>
+        </div>
+
+        <div class="container" style="max-width: 650px;">
+            <div class="glass-card p-4 mb-4 border-orange">
+                <h5 class="text-warning border-bottom border-secondary pb-2 mb-3">
+                    📜 Misión del Nivel 2
+                </h5>
+                <ul class="text-light small mb-0 instructions-list ps-3">
+                    <li class="mb-2">
+                        Explora la granja infestada y localiza las <strong class="text-warning">3 Llaves Místicas Brillantes</strong>.
+                    </li>
+                    <li class="mb-2">
+                        Acércate a cada llave y presiona <kbd>E</kbd> para recogerla.
+                    </li>
+                    <li class="mb-2">
+                        Los zombies no dejarán de aparecer. Mantente en movimiento para no ser rodeado.
+                    </li>
+                    <li>
+                        Una vez obtenidas las 3 llaves, corre al <strong class="text-success">Portal de Salida</strong>.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <button id="btnStartLevel2" class="btn btn-start btn-lg px-5 py-3 fw-bold shadow-lg">
+            ¡ENFRENTAR EL NIVEL 2!
+        </button>
+    </div>
+
+    <!-- PANTALLA TRANSICIÓN A NIVEL 3 -->
+    <div id="level3Screen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
+        <div class="text-center mb-3">
+            <h1 class="game-title display-2 fw-bold text-uppercase text-danger">NIVEL 3: LA BATALLA FINAL</h1>
+            <p class="subtitle lead text-light fw-semibold">🔥 Sobrevive al ataque masivo para lograr la victoria absoluta 🔥</p>
+        </div>
+
+        <div class="container" style="max-width: 650px;">
+            <div class="glass-card p-4 mb-4 border-danger">
+                <h5 class="text-danger border-bottom border-secondary pb-2 mb-3">
+                    📜 Misión del Nivel 3
+                </h5>
+                <ul class="text-light small mb-0 instructions-list ps-3">
+                    <li class="mb-2">
+                        Has desbloqueado el paso final, pero la <strong class="text-warning">Horda Suprema</strong> te rodea.
+                    </li>
+                    <li class="mb-2">
+                        Utiliza los cultivos para no quedarte sin jitomates y mantén la distancia.
+                    </li>
+                    <li>
+                        Resiste y elimina a los enemigos restantes para completar la evacuación.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <button id="btnStartLevel3" class="btn btn-start btn-lg px-5 py-3 fw-bold shadow-lg">
+            ¡INICIAR NIVEL 3!
+        </button>
+    </div>
+
+    <!-- HUD DEL JUEGO -->
     <div id="gameHUD" class="d-none">
         <div id="healthContainer" class="hud-box">
             <span class="hud-label">VIDA</span>
@@ -105,7 +172,7 @@
         </div>
 
         <div id="objectiveContainer" class="hud-box border-warning">
-            <span class="hud-label text-warning">NIVEL 1: OBJETIVO</span>
+            <span id="objectiveLabel" class="hud-label text-warning">NIVEL 1: OBJETIVO</span>
             <span id="objectiveText" class="badge bg-warning text-dark fs-6">Elimina Zombies: 0 / 10</span>
         </div>
 
@@ -125,6 +192,7 @@
         </div>
     </div>
 
+    <!-- PANTALLA GAME OVER / VICTORIA -->
     <div id="gameOverScreen" class="overlay-screen d-none flex-column justify-content-center align-items-center p-3">
         <h1 id="endTitle" class="game-over-title display-1 fw-bold text-danger mb-2">GAME OVER</h1>
         <p id="endMessage" class="lead text-light mb-4">Los zombies devoraron tus cosechas y tu cerebro.</p>
@@ -132,7 +200,7 @@
         <div class="glass-card p-4 mb-4 border-danger text-center" style="min-width: 300px;">
             <h5 class="text-danger mb-3 border-bottom border-secondary pb-2">Estadísticas Finales</h5>
             <div class="d-flex justify-content-between mb-2 fs-6">
-                <span class="text-secondary">Zombies Derrotados:</span>
+                <span class="text-secondary">Zombies Derrotados Totales:</span>
                 <span id="finalScore" class="fw-bold text-warning">0</span>
             </div>
             <div class="d-flex justify-content-between fs-6">

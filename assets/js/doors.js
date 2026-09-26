@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
-import { gameState, startLevel2 } from './game.js';
+import { gameState, triggerLevel2Transition, triggerLevel3Transition } from './game.js';
 import { playerMesh } from './player.js';
 import { staticColliders } from './physics.js';
 
@@ -108,8 +108,8 @@ export function initGates(scene) {
             openGate.visible = false;
             scene.add(openGate);
 
-            gatePairs.push({ 
-                closed: closedGate, 
+            gatePairs.push({
+                closed: closedGate,
                 open: openGate,
                 collider: colliderBox
             });
@@ -157,7 +157,9 @@ export function updateGates(delta) {
             const dist = playerMesh.position.distanceTo(new THREE.Vector3(pos.x, 0, pos.z));
             if (dist < 2.5) {
                 if (gameState.level === 1) {
-                    startLevel2();
+                    triggerLevel2Transition();
+                } else if (gameState.level === 2) {
+                    triggerLevel3Transition(); // <-- Cambiado: Pasa al Nivel 3
                 }
             }
         });
