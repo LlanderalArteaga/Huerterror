@@ -5,6 +5,10 @@ import { showInteractionPrompt, hideInteractionPrompt } from './ui.js';
 
 export const activeKeys = [];
 
+// Configuración de audio de la llave
+const keySound = new Audio('./assets/audio/Sonido_Llave.mp3');
+keySound.volume = 0.7;
+
 // Posiciones estratégicas para las 3 llaves dentro de las vallas
 const KEY_POSITIONS = [
     new THREE.Vector3(-18.0, 0.8, -18.0), // Esquina Noroeste
@@ -115,6 +119,11 @@ window.addEventListener('keydown', (e) => {
             if (!k.collected && playerMesh.position.distanceTo(k.mesh.position) < 2.5) {
                 k.collected = true;
                 k.mesh.visible = false;
+
+                // Reproduce el sonido de la llave
+                keySound.currentTime = 0;
+                keySound.play().catch(() => {});
+
                 hideInteractionPrompt();
                 onKeyCollected(); // Notifica a game.js
             }

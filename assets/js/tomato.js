@@ -6,6 +6,16 @@ import { checkCollision } from './physics.js';
 import { gameState } from './game.js';
 import { updateHUD, showInteractionPrompt, hideInteractionPrompt } from './ui.js';
 
+// Configuración del audio de impacto del jitomate
+const tomatoImpactSound = new Audio('./assets/audio/Sonido_Jitomate.mp3');
+tomatoImpactSound.volume = 0.5;
+
+// Función exportada para reproducir el sonido desde cualquier archivo
+export function playTomatoImpactSound() {
+    tomatoImpactSound.currentTime = 0;
+    tomatoImpactSound.play().catch(() => {});
+}
+
 export const activeTomatoes = [];
 const activeParticles = [];
 let tomatoModel = null;
@@ -220,7 +230,6 @@ function shootTomato(scene) {
         direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
         direction.normalize();
 
-        // Aplicar fuerza configurada por el usuario
         const velocity = direction.multiplyScalar(throwForce);
 
         scene.add(tomato);
@@ -264,6 +273,8 @@ export function updateTomatoes(delta, scene) {
 
         if (hasHit) {
             createTomatoExplosion(scene, nextPos);
+            playTomatoImpactSound();
+
             scene.remove(t.mesh);
             activeTomatoes.splice(i, 1);
         } else if (t.life <= 0) {

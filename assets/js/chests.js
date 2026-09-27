@@ -6,6 +6,13 @@ import { gameState, onKeyCollected } from './game.js';
 import { showInteractionPrompt, hideInteractionPrompt } from './ui.js';
 import { staticColliders } from './physics.js';
 
+// Configuración de audio para cofres y llaves
+const chestSound = new Audio('./assets/audio/Sonido_Cofre.mp3');
+chestSound.volume = 0.7;
+
+const keySound = new Audio('./assets/audio/Sonido_Llave.mp3');
+keySound.volume = 0.7;
+
 export const activeChests = [];
 const structureBlocks = [];
 const structureColliders = [];
@@ -216,6 +223,11 @@ export function updateChests(delta, scene) {
                     scene.remove(c.keyMesh);
                     c.keyMesh = null;
                 }
+
+                // Sonido al completar la obtención de la llave del cofre
+                keySound.currentTime = 0;
+                keySound.play().catch(() => {});
+
                 onKeyCollected();
             }
         }
@@ -242,6 +254,10 @@ window.addEventListener('keydown', (e) => {
                 c.opened = true;
                 c.closedMesh.visible = false;
                 c.openMesh.visible = true;
+
+                // Reproduce el sonido de apertura de cofre
+                chestSound.currentTime = 0;
+                chestSound.play().catch(() => {});
 
                 if (c.light) c.light.color.setHex(0x00ff66);
 

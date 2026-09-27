@@ -240,6 +240,13 @@ de los límites establecidos del escenario.
 ├── index.html                  # Interfaz principal, HUD y pantallas de transición
 ├── README.md                   # Documentación del proyecto
 └── assets/
+    ├── audio/                     # Efectos de sonido y música ambiental
+    │   ├── Sonido_Cofre.mp3       # Apertura de cofre místico
+    │   ├── Sonido_Esqueleto.mp3   # Invocación y resurrección del esqueleto (Nivel 3)
+    │   ├── Sonido_Fondo.mp3       # Música de ambiente tenebrosa
+    │   ├── Sonido_Jitomate.mp3    # Impacto / "splat" del jitomate al colisionar
+    │   ├── Sonido_Llave.mp3       # Obtención / revelación de llave
+    │   └── Sonido_Portal.mp3      # Activación del portal de salida
     ├── css/
     │   └── styles.css          # Estilos personalizados y del HUD
     ├── js/
@@ -315,6 +322,20 @@ El recurso puede utilizarse para proyectos personales y comerciales sin
 atribución obligatoria.
 
 ------------------------------------------------------------------------
+
+### 🎵 Música de Fondo y Efectos de Sonido
+Música ambiental y efectos de audio libres de derechos de autor obtenidos de [Pixabay](https://pixabay.com/):
+
+- **Música de Fondo Ambient Tenebrosa:** Compuesta por **Nikita Kondrashev** (`leberch`).
+- **Sonido de Apertura de Cofre:** Creado por **floraphonic**.
+- **Sonido Mágico de Llave:** Creado por **Krzysztof Szymanski** (`DJARTMUSIC`).
+- **Sonido de Portal Místico:** Creado por **DRAGON-STUDIO**.
+- **Sonido_Jitomate.mp3** — Creado por **PixelCrusher** en Pixabay.
+- **Sonido_Esqueleto.mp3** — Creado por **FreeEverythingxx** en Pixabay.
+
+- **Licencia:** [Pixabay Content License](https://pixabay.com/service/license-summary/) *(Uso gratuito para proyectos comerciales y personales sin necesidad de atribución obligatoria).*
+
+----------------------------------------------------------------------
 
 # 🤖 Uso de Inteligencia Artificial como Asistente
 

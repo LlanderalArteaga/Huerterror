@@ -15,6 +15,11 @@ let scene, camera, renderer, clock;
 let spawnTimer = 0;
 let activeLevelLoaded = 0;
 
+// Configuración de música de fondo (BGM)
+const bgmSound = new Audio('./assets/audio/Sonido_Fondo.mp3');
+bgmSound.loop = true;
+bgmSound.volume = 0.3;
+
 function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f101d);
@@ -62,6 +67,11 @@ function animate() {
     const delta = clock.getDelta();
 
     if (gameState.isPlaying) {
+        // Control de música ambiental de fondo
+        if (bgmSound.paused) {
+            bgmSound.play().catch(() => {});
+        }
+
         // Gestión de carga de props y reinicio de entidades según el nivel activo
         if (gameState.level !== activeLevelLoaded) {
             clearChests(scene);
@@ -103,6 +113,11 @@ function animate() {
             spawnTimer = 0;
         }
     } else {
+        // Pausar la música si el juego termina o se pausa
+        if (!bgmSound.paused) {
+            bgmSound.pause();
+        }
+
         // Al morir o pausar, se limpia todo para estar listos para reiniciar
         if (activeLevelLoaded !== 0) {
             clearChests(scene);

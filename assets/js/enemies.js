@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { addDynamicBody, checkCollision } from './physics.js';
-import { activeTomatoes, createTomatoExplosion } from './tomato.js';
+import { activeTomatoes, createTomatoExplosion, playTomatoImpactSound } from './tomato.js';
 import { playerMesh, MAP_LIMITS } from './player.js';
 import { gameState, onZombieKilled } from './game.js';
 import { updateHUD, triggerDamageFlash } from './ui.js';
@@ -168,6 +168,7 @@ export function updateEnemies(delta, scene) {
 
             if (zombieCenter.distanceTo(tom.mesh.position) < 1.2) {
                 createTomatoExplosion(scene, tom.mesh.position.clone());
+                playTomatoImpactSound(); // Reproduce el sonido al golpear al zombie
 
                 scene.remove(tom.mesh);
                 activeTomatoes.splice(j, 1);

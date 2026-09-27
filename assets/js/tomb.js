@@ -7,6 +7,10 @@ import { showInteractionPrompt, hideInteractionPrompt } from './ui.js';
 import { GATE_POSITIONS, openSpecificGate } from './doors.js';
 import { staticColliders } from './physics.js';
 
+// Configuración del audio de invocación del Esqueleto
+const skeletonRiseSound = new Audio('./assets/audio/Sonido_Esqueleto.mp3');
+skeletonRiseSound.volume = 0.8;
+
 let coffinModel = null;
 let skeletonModel = null;
 
@@ -117,6 +121,10 @@ window.addEventListener('keydown', (e) => {
             if (playerMesh.position.distanceTo(TOMB_POSITION) < 3.5) {
                 gameState.tombDelivered = true;
                 hideInteractionPrompt();
+
+                // Reproduce el sonido del esqueleto al surgir
+                skeletonRiseSound.currentTime = 0;
+                skeletonRiseSound.play().catch(() => {});
 
                 // Desaparecer ataúd y quitar sus físicas
                 currentCoffin.visible = false;

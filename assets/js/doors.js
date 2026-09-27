@@ -6,6 +6,11 @@ import { playerMesh } from './player.js';
 import { staticColliders } from './physics.js';
 import { showVictoryScreen } from './ui.js';
 
+// Configuración de audio del portal
+const portalSound = new Audio('./assets/audio/Sonido_Portal.mp3');
+portalSound.volume = 0.6;
+let portalSoundPlayed = false;
+
 const gateLights = [];
 const gatePairs = [];
 
@@ -139,6 +144,13 @@ export function updateGates(delta) {
     if (!playerMesh || !gameState.isPlaying) return;
 
     if (gameState.doorOpen) {
+        // Reproducir el sonido del portal una sola vez al activarse
+        if (!portalSoundPlayed) {
+            portalSound.currentTime = 0;
+            portalSound.play().catch(() => {});
+            portalSoundPlayed = true;
+        }
+
         if (gameState.level === 3 && gameState.openedGateIndex !== undefined && gameState.openedGateIndex !== -1) {
             // NIVEL 3: Abrir solo la puerta seleccionada por el Esqueleto
             openSpecificGate(gameState.openedGateIndex);
@@ -191,6 +203,8 @@ export function updateGates(delta) {
             });
         }
     } else {
+        portalSoundPlayed = false;
+
         // Puertas cerradas y con físicas
         gatePairs.forEach((pair) => {
             if (pair.closed && !pair.closed.visible) {
